@@ -1,6 +1,100 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh">
 <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Gallery - RENCLINKCREAKY</title>
+  <style>
+    body {
+      background:#000;
+      color:#eee;
+      font-family:'Arial', sans-serif;
+      text-align:center;
+      margin:0;
+      padding:0;
+    }
+    /* 首页大标题样式保持统一 */
+    .site-title {
+      font-size:60px;
+      font-weight:bold;
+      padding:50px 0 20px 0;
+      color:#f5c542;
+      text-shadow: 2px 2px 5px #222;
+    }
+    .site-title a {
+      color:#f5c542;
+      text-decoration:none;
+    }
+    .site-title a:hover {
+      color:#fff;
+      text-shadow:1px 1px 5px #f5c542;
+    }
+    /* 导航统一 */
+    .main-nav {
+      margin-bottom:40px;
+    }
+    .main-nav a {
+      color:#f5c542;
+      text-decoration:none;
+      font-size:24px;
+      margin:0 25px;
+      display:inline-block;
+      padding:10px 0;
+      transition: color 0.3s, text-shadow 0.3s;
+    }
+    .main-nav a:hover {
+      color:#fff;
+      text-shadow:1px 1px 5px #f5c542;
+    }
+
+    h1 {
+      margin-bottom:10px;
+    }
+    p {
+      color:#ccc;
+    }
+
+    /* 小标题样式 */
+    .sub-title {
+      font-size:20px;
+      color:#f5c542;
+      margin:20px 0 10px 0;
+      text-transform: uppercase;
+      letter-spacing:1px;
+    }
+
+    /* Gallery 图片网格 */
+    #gallery {
+      display:grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap:20px;
+      max-width:1000px;
+      margin:0 auto 50px auto;
+      padding:0 20px;
+    }
+    #gallery a {
+      display:block;
+      text-decoration:none;
+      color:#eee;
+      text-align:center;
+    }
+    #gallery img {
+      width:100%;
+      border:2px solid #f5c542;
+      border-radius:8px;
+      transition: transform 0.3s;
+    }
+    #gallery img:hover {
+      transform: scale(1.05);
+    }
+
+    footer {
+      text-align:center;
+      margin:50px 0;
+      font-size:14px;
+      color:#888;
+    }
+  </style>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Gallery - RENCLINKCREAKY</title>
@@ -26,9 +120,15 @@ footer { text-align:center; margin:50px 0; font-size:14px; color:#888; }
 </head>
 <body>
 
+<!-- 大标题 -->
+<div class="site-title">
+  <a href="../index.html">RENCLINKCREAKY</a>
+</div>
 <div class="site-title"><a href="../index.html">RENCLINKCREAKY</a></div>
 
+<!-- 主导航 -->
 <div class="main-nav">
+  <a href="../comic/chapter1.html">Comic</a>
   <a id="comic-nav" href="#">Comic</a>
   <a href="../archive/index.html">Archive</a>
   <a href="index.html">Gallery</a>
@@ -40,4 +140,33 @@ footer { text-align:center; margin:50px 0; font-size:14px; color:#888; }
   <a href="https://www.patreon.com/renclinkcreaky" target="_blank"><svg viewBox="0 0 24 24"><path d="M14.8 2a8.8 8.8 0 1 1 0 17.6A8.8 8.8 0 0 1 14.8 2zM2 2h3v20H2z"/></svg></a>
   <a href="https://www.instagram.com/renclink" target="_blank"><svg viewBox="0 0 24 24"><path d="M7 2h10a5 5 0 0 1 5 5v10a5 5 0 0 1-5 5H7a5 5 0 0 1-5-5V7a5 5 0 0 1 5-5zm5 5a5 5 0 1 0 0 10a5 5 0 0 0 0-10z"/></svg></a>
   <a href="https://bsky.app/profile/renclink.bsky.social" target="_blank"><svg viewBox="0 0 24 24"><path d="M12 12c2.5-3.5 7-6.5 9-7-1 4-4 8-7 9 3 1 6 5 7 9-2-1-6.5-3.5-9-7-2.5 3.5-7 6.5-9 7 1-4 4-8 7-9-3-1-6-5-7-9 2 1 6.5 3.5 9 7z"/></svg></a>
-  <a href="https://www.youtube.com/@renclinkcreaky" target="_blank"><svg viewBox="0 0 24 24" style="fill:#f5c542"><path d="M23 7s-1-4-4-4H5C2 3 1 7 1 7s-1 4-1 7 1 7 1 7 1 4
+  <a href="https://www.youtube.com/@renclinkcreaky" target="_blank"><svg viewBox="0 0 24 24"><path d="M23 7s-1-4-4-4H5C2 3 1 7 1 7s-1 4-1 7 1 7 1 7 1 4 4 4h14c3 0 4-4 4-4s1-4 1-7-1-7-1-7zM10 16V8l6 4-6 4z"/></svg></a>
+</div>
+
+<h1>Gallery</h1>
+<p>这里展示我的漫画插画或作品</p>
+
+<!-- 添加小标题 -->
+<div class="sub-title">Sketches</div>
+<div class="sub-title">Illustrations</div>
+<div class="sub-title">Concept Art</div>
+<div class="sub-title">Fan Art</div>
+
+<div id="gallery">
+  <a href="../images/ch1_01.png"><img src="../images/ch1_01.png" alt="作品1"></a>
+  <a href="../images/ch1_02.png"><img src="../images/ch1_02.png" alt="作品2"></a>
+  <!-- 可以继续添加更多图片 -->
+</div>
+
+<footer>
+  RENCLINKCREAKY &copy; 2026. All rights reserved.
+</footer>
+<footer>RENCLINKCREAKY &copy; 2026. All rights reserved.</footer>
+
+<script>
+const latestComic = { link:"../comic/chapter2.html" };
+document.getElementById("comic-nav").href = latestComic.link;
+</script>
+
+</body>
+</html>
