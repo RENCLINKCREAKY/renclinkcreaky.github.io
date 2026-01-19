@@ -17,6 +17,34 @@
   margin-bottom:20px;
   border:2px solid #f5c542;
 }
+
+/* 上下章节导航 */
+.chapter-nav {
+  margin:30px 0;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  gap:20px;
+  flex-wrap:wrap;
+}
+.chapter-nav a {
+  color:#f5c542;
+  text-decoration:none;
+  font-size:18px;
+  padding:6px 12px;
+  border:1px solid #f5c542;
+  transition: background 0.2s;
+}
+.chapter-nav a:hover {
+  background:#222;
+}
+.chapter-nav select {
+  font-size:16px;
+  padding:4px 8px;
+  border:1px solid #f5c542;
+  background:#000;
+  color:#f5c542;
+}
 </style>
 </head>
 <body>
@@ -34,6 +62,17 @@
   <!-- 社交图标 -->
 </div>
 
+<!-- 上下话 + 下拉菜单 -->
+<div class="chapter-nav">
+  <a href="#" class="prev-chapter" style="visibility:hidden;">← Previous</a>
+  <select id="chapter-select">
+    <option value="chapter1.html" selected>Chapter 1</option>
+    <option value="chapter2.html">Chapter 2</option>
+    <!-- 可以继续添加章节 -->
+  </select>
+  <a href="chapter2.html" class="next-chapter">Next →</a>
+</div>
+
 <div class="comic-page">
   <img src="../images/ch1_01.png" alt="Chapter 1 Page 1">
   <img src="../images/ch1_02.png" alt="Chapter 1 Page 2">
@@ -41,6 +80,13 @@
 </div>
 
 <footer>© 2026 Renclinkcreaky. All rights reserved.</footer>
+
+<script>
+const select = document.getElementById("chapter-select");
+select.addEventListener("change", function(){
+  window.location.href = this.value;
+});
+</script>
 
 </body>
 </html>
