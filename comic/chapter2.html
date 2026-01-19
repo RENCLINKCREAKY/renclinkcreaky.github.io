@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <title>第二话</title>
+  <style>
+    body { background: #000; color: #eee; text-align: center; font-family: sans-serif; }
+    img { width: 100%; max-width: 900px; margin: 20px auto; display: block; }
+    .nav a { color: #f5c542; font-size: 18px; margin: 10px; display: inline-block; }
+  </style>
+</head>
+<body>
+  <h1>第二话</h1>
+
+  <!-- 漫画图片 -->
+  <img src="../images/ch2_01.jpg">
+  <img src="../images/ch2_02.jpg">
+  <img src="../images/ch2_03.jpg">
+
+  <!-- 导航按钮 -->
+  <div class="nav">
+    <a href="../index.html">← 返回首页</a>
+  </div>
+
+  <script>
+    const current = 2; // 当前章节号
+    const total = 2; // 总章节数
+    const navDiv = document.querySelector('.nav');
+
+    if (current > 1) {
+      const prev = document.createElement('a');
+      prev.href = `chapter${current - 1}.html`;
+      prev.textContent = '← 上一话';
+      navDiv.appendChild(prev);
+    }
+
+    if (current < total) {
+      const next = document.createElement('a');
+      next.href = `chapter${current + 1}.html`;
+      next.textContent = '下一话 →';
+      navDiv.appendChild(next);
+    }
+  </script>
+</body>
+</html>
