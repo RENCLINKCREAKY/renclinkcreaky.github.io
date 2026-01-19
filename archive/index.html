@@ -1,24 +1,31 @@
 <!DOCTYPE html>
-<html lang="zh">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Archive - RENCLINKCREAKY</title>
 <style>
 body { margin:0; padding:0; background:#000; color:#eee; font-family:'Arial', sans-serif; text-align:center; }
-.site-title { font-size:60px; font-weight:bold; padding:40px 0 20px 0; color:#f5c542; text-shadow:2px 2px 5px #222; }
+.site-title { font-size:60px; font-weight:bold; padding:40px 0 10px 0; color:#f5c542; text-shadow:2px 2px 5px #222; }
 .site-title a { color:#f5c542; text-decoration:none; }
 .site-title a:hover { color:#fff; text-shadow:1px 1px 5px #f5c542; }
-.main-nav { margin-bottom:30px; }
+.main-nav { margin-bottom:20px; }
 .main-nav a { color:#f5c542; text-decoration:none; font-size:22px; margin:0 20px; }
 .main-nav a:hover { color:#fff; }
 .socials { margin:20px 0 30px 0; }
 .socials a { display:inline-block; margin:0 12px; }
 .socials svg { width:22px; height:22px; fill:#f5c542; opacity:0.8; transition: transform 0.2s, opacity 0.2s; }
 .socials a:hover svg { transform: scale(1.15); opacity:1; }
-.archive-list { max-width:800px; margin:0 auto 50px auto; text-align:left; }
-.archive-list a { display:block; padding:10px 0; font-size:18px; color:#f5c542; text-decoration:none; border-bottom:1px solid #444; }
-.archive-list a:hover { color:#fff; }
+
+/* Archive Title */
+.archive-header { font-size:28px; margin-bottom:5px; color:#f5c542; }
+.volume { font-size:20px; text-align:right; margin:0 20px 20px 20px; color:#ccc; }
+
+/* Archive grid */
+.archive-grid { display:grid; grid-template-columns:repeat(5,1fr); gap:20px; max-width:1200px; margin:0 auto 50px auto; }
+.archive-item img { width:100%; border:2px solid #f5c542; transition: transform 0.3s; }
+.archive-item img:hover { transform: scale(1.05); }
+.archive-item span { display:block; margin-top:8px; font-size:16px; color:#ccc; text-align:center; }
 footer { text-align:center; margin:50px 0; font-size:14px; color:#888; }
 </style>
 </head>
@@ -28,10 +35,50 @@ footer { text-align:center; margin:50px 0; font-size:14px; color:#888; }
 
 <div class="main-nav">
   <a id="comic-nav" href="#">Comic</a>
-  <a href="index.html">Archive</a>
+  <a href="#">Archive</a>
   <a href="../gallery/index.html">Gallery</a>
   <a href="../characters/index.html">Characters</a>
 </div>
 
 <div class="socials">
-  <a href="mailto:jwh948754@gmail.com"><svg viewBox="0 0 24 24"><path d="M2 4h20v16H2V4zm10
+  <a href="mailto:jwh948754@gmail.com"><svg viewBox="0 0 24 24"><path d="M2 4h20v16H2V4zm10 9L4 6h16l-8 7z"/></svg></a>
+  <a href="https://www.patreon.com/renclinkcreaky" target="_blank"><svg viewBox="0 0 24 24"><path d="M14.8 2a8.8 8.8 0 1 1 0 17.6A8.8 8.8 0 0 1 14.8 2zM2 2h3v20H2z"/></svg></a>
+  <a href="https://www.instagram.com/renclink" target="_blank"><svg viewBox="0 0 24 24"><path d="M7 2h10a5 5 0 0 1 5 5v10a5 5 0 0 1-5 5H7a5 5 0 0 1-5-5V7a5 5 0 0 1 5-5zm5 5a5 5 0 1 0 0 10a5 5 0 0 0 0-10z"/></svg></a>
+  <a href="https://bsky.app/profile/renclink.bsky.social" target="_blank"><svg viewBox="0 0 24 24"><path d="M12 12c2.5-3.5 7-6.5 9-7-1 4-4 8-7 9 3 1 6 5 7 9-2-1-6.5-3.5-9-7-2.5 3.5-7 6.5-9 7 1-4 4-8 7-9-3-1-6-5-7-9 2 1 6.5 3.5 9 7z"/></svg></a>
+  <a href="https://www.youtube.com/@renclinkcreaky" target="_blank"><svg viewBox="0 0 24 24" style="fill:#f5c542"><path d="M23 7s-1-4-4-4H5C2 3 1 7 1 7s-1 4-1 7 1 7 1 7 1 4 4 4h14c3 0 4-4 4-4s1-4 1-7-1-7-1-7zM10 16V8l6 4-6 4z"/></svg></a>
+</div>
+
+<div class="archive-header">Archive</div>
+<div class="volume">Volume 1</div>
+
+<div class="archive-grid">
+  <div class="archive-item">
+    <a href="../comic/chapter1.html">
+      <img src="../images/ch1_01.png" alt="Chapter 1">
+      <span>Chapter 1 - Renclink Unintentionally</span>
+    </a>
+  </div>
+  <div class="archive-item">
+    <a href="../comic/chapter2.html">
+      <img src="../images/ch2_01.png" alt="Chapter 2">
+      <span>Chapter 2</span>
+    </a>
+  </div>
+  <div class="archive-item">
+    <a href="../comic/chapter3.html">
+      <img src="../images/ch3_01.png" alt="Chapter 3">
+      <span>Chapter 3</span>
+    </a>
+  </div>
+  <!-- Add more chapters as needed -->
+</div>
+
+<footer>© 2026 Renclinkcreaky. All rights reserved.</footer>
+
+<script>
+const latestComic = { link:"../comic/chapter2.html" };
+document.getElementById("comic-nav").href = latestComic.link;
+</script>
+
+</body>
+</html>
