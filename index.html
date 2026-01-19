@@ -6,7 +6,6 @@
 <title>RENCLINKCREAKY</title>
 <style>
 
-/* ✅ 关键：防止宽度被 padding 撑爆 */
 * {
   box-sizing: border-box;
 }
@@ -18,16 +17,18 @@ body {
   color:#eee;
   font-family:'Arial', sans-serif;
   text-align:center;
-  overflow-x:hidden; /* ✅ 彻底防止横向滑动 */
+  overflow-x:hidden;
 }
 
-/* 大标题 */
+/* ===== 大标题（桌面） ===== */
 .site-title {
   font-size:60px;
   font-weight:bold;
-  padding:40px 0 20px 0;
+  padding:40px 0 20px;
   color:#f5c542;
   text-shadow:2px 2px 5px #222;
+  max-width:100%;
+  white-space:nowrap;
 }
 .site-title a {
   color:#f5c542;
@@ -36,6 +37,14 @@ body {
 .site-title a:hover {
   color:#fff;
   text-shadow:1px 1px 5px #f5c542;
+}
+
+/* ✅ 手机端自动缩小标题 */
+@media (max-width: 600px) {
+  .site-title {
+    font-size:36px;
+    padding:28px 0 16px;
+  }
 }
 
 /* 导航 */
@@ -54,7 +63,7 @@ body {
 
 /* 顶部社交 */
 .socials {
-  margin:20px 0 30px 0;
+  margin:20px 0 30px;
 }
 .socials a {
   display:inline-block;
@@ -65,14 +74,14 @@ body {
   height:22px;
   fill:#f5c542;
   opacity:0.8;
-  transition: transform 0.2s, opacity 0.2s;
+  transition:transform 0.2s, opacity 0.2s;
 }
 .socials a:hover svg {
-  transform: scale(1.15);
+  transform:scale(1.15);
   opacity:1;
 }
 
-/* ✅ 主视觉容器负责居中和留边距 */
+/* 主视觉 */
 .hero {
   padding:0 20px;
   margin-bottom:70px;
@@ -102,10 +111,10 @@ body {
   width:260px;
   max-width:90%;
   border:2px solid #f5c542;
-  transition: transform 0.3s;
+  transition:transform 0.3s;
 }
 .latest-comic img:hover {
-  transform: scale(1.05);
+  transform:scale(1.05);
 }
 .latest-comic span {
   display:block;
