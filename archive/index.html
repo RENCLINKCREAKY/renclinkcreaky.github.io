@@ -79,10 +79,15 @@ body {
   text-align:center;
 }
 
+/* a 内部垂直排列，确保标题在图片下方 */
 .thumb-item a {
-  display:block; /* 确保文字在图片下方 */
+  display:flex;
+  flex-direction: column;
+  align-items: center;
+  text-decoration: none;
 }
 
+/* 缩略图样式 */
 .thumb-item img {
   width:100%;
   max-width:200px;
@@ -95,12 +100,13 @@ body {
   transform: scale(1.05);
 }
 
+/* 缩略图下标题 */
 .thumb-item span {
-  display:block; /* 强制换行到图片下方 */
   margin-top:10px;
   font-size:18px;
   color:#f5c542;
   text-align:center;
+  display:block;
 }
 
 /* 页尾 */
@@ -153,7 +159,6 @@ footer {
       <span>Chapter 3</span>
     </a>
   </div>
-  <!-- 可以继续添加更多章节 -->
 </div>
 
 <!-- 页尾 -->
