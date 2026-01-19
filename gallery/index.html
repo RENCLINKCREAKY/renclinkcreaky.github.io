@@ -50,18 +50,21 @@
     h1 {
       margin-bottom:10px;
     }
-    h2 {
-      color:#f5c542;
-      margin:40px 0 20px 0;
-      font-size:32px;
-      text-shadow: 1px 1px 3px #222;
-    }
     p {
       color:#ccc;
     }
 
+    /* 小标题样式 */
+    .sub-title {
+      font-size:20px;
+      color:#f5c542;
+      margin:20px 0 10px 0;
+      text-transform: uppercase;
+      letter-spacing:1px;
+    }
+
     /* Gallery 图片网格 */
-    .gallery-section {
+    #gallery {
       display:grid;
       grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
       gap:20px;
@@ -69,19 +72,19 @@
       margin:0 auto 50px auto;
       padding:0 20px;
     }
-    .gallery-section a {
+    #gallery a {
       display:block;
       text-decoration:none;
       color:#eee;
       text-align:center;
     }
-    .gallery-section img {
+    #gallery img {
       width:100%;
       border:2px solid #f5c542;
       border-radius:8px;
       transition: transform 0.3s;
     }
-    .gallery-section img:hover {
+    #gallery img:hover {
       transform: scale(1.05);
     }
 
@@ -111,25 +114,16 @@
 <h1>Gallery</h1>
 <p>这里展示我的漫画插画或作品</p>
 
-<!-- 插画作品 -->
-<h2>插画作品</h2>
-<div class="gallery-section">
+<!-- 添加小标题 -->
+<div class="sub-title">Sketches</div>
+<div class="sub-title">Illustrations</div>
+<div class="sub-title">Concept Art</div>
+<div class="sub-title">Fan Art</div>
+
+<div id="gallery">
   <a href="../images/ch1_01.png"><img src="../images/ch1_01.png" alt="作品1"></a>
   <a href="../images/ch1_02.png"><img src="../images/ch1_02.png" alt="作品2"></a>
-</div>
-
-<!-- 漫画草稿 -->
-<h2>漫画草稿</h2>
-<div class="gallery-section">
-  <a href="../images/draft1.png"><img src="../images/draft1.png" alt="草稿1"></a>
-  <a href="../images/draft2.png"><img src="../images/draft2.png" alt="草稿2"></a>
-</div>
-
-<!-- 人物设定 -->
-<h2>人物设定</h2>
-<div class="gallery-section">
-  <a href="../images/character1.png"><img src="../images/character1.png" alt="人物1"></a>
-  <a href="../images/character2.png"><img src="../images/character2.png" alt="人物2"></a>
+  <!-- 可以继续添加更多图片 -->
 </div>
 
 <footer>
