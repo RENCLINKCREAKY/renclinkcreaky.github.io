@@ -1,170 +1,37 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Archive - RENCLINKCREAKY</title>
 <style>
-/* 全局样式 */
-body {
-  margin:0;
-  padding:0;
-  background:#000; 
-  color:#eee;
-  font-family:'Arial', sans-serif;
-  text-align:center;
-}
-
-/* 第一行：首页大标题 */
-.site-title {
-  font-size:60px;
-  font-weight:bold;
-  padding:50px 0 20px 0;
-  color:#f5c542;
-  text-shadow: 2px 2px 5px #222;
-}
-.site-title a {
-  color:#f5c542;
-  text-decoration:none;
-}
-.site-title a:hover {
-  color:#fff;
-  text-shadow: 1px 1px 5px #f5c542;
-}
-
-/* 第二行：导航菜单 */
-.main-nav a {
-  color:#f5c542;
-  text-decoration:none;
-  font-size:24px;
-  margin:0 25px;
-  display:inline-block;
-  padding:10px 0;
-  transition: color 0.3s, text-shadow 0.3s;
-}
-.main-nav a:hover {
-  color:#fff;
-  text-shadow:1px 1px 5px #f5c542;
-}
-
-/* 第三行：Archive 居中标题 */
-.archive-title {
-  font-size:36px;
-  color:#f5c542;
-  margin:40px 0 20px 0;
-  text-align:center;
-}
-
-/* 第四行：Volume 标题左对齐 */
-.volume-title {
-  color:#f5c542;
-  text-align:left;
-  font-size:30px;
-  margin:40px 50px 20px 50px;
-}
-
-/* 缩略图网格 */
-.thumbs-container {
-  display:grid;
-  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-  gap:20px;
-  max-width:1200px;
-  margin:0 auto 50px auto;
-}
-
-/* 每个缩略图卡片 */
-.thumb-item {
-  display:flex;
-  flex-direction: column;
-  align-items: center;
-  text-align:center;
-}
-
-/* a 内部垂直排列，确保标题在图片下方 */
-.thumb-item a {
-  display:flex;
-  flex-direction: column;
-  align-items: center;
-  text-decoration: none;
-}
-
-/* 缩略图样式 */
-.thumb-item img {
-  width:100%;
-  max-width:200px;
-  height:auto;
-  border:2px solid #f5c542;
-  transition: transform 0.3s;
-}
-
-.thumb-item img:hover {
-  transform: scale(1.05);
-}
-
-/* 缩略图下标题 */
-.thumb-item span {
-  margin-top:10px;
-  font-size:18px;
-  color:#f5c542;
-  text-align:center;
-  display:block;
-}
-
-/* 页尾 */
-footer {
-  text-align:center;
-  margin:50px 0;
-  font-size:14px;
-  color:#888;
-}
+body { margin:0; padding:0; background:#000; color:#eee; font-family:'Arial', sans-serif; text-align:center; }
+.site-title { font-size:60px; font-weight:bold; padding:40px 0 20px 0; color:#f5c542; text-shadow:2px 2px 5px #222; }
+.site-title a { color:#f5c542; text-decoration:none; }
+.site-title a:hover { color:#fff; text-shadow:1px 1px 5px #f5c542; }
+.main-nav { margin-bottom:30px; }
+.main-nav a { color:#f5c542; text-decoration:none; font-size:22px; margin:0 20px; }
+.main-nav a:hover { color:#fff; }
+.socials { margin:20px 0 30px 0; }
+.socials a { display:inline-block; margin:0 12px; }
+.socials svg { width:22px; height:22px; fill:#f5c542; opacity:0.8; transition: transform 0.2s, opacity 0.2s; }
+.socials a:hover svg { transform: scale(1.15); opacity:1; }
+.archive-list { max-width:800px; margin:0 auto 50px auto; text-align:left; }
+.archive-list a { display:block; padding:10px 0; font-size:18px; color:#f5c542; text-decoration:none; border-bottom:1px solid #444; }
+.archive-list a:hover { color:#fff; }
+footer { text-align:center; margin:50px 0; font-size:14px; color:#888; }
 </style>
 </head>
 <body>
 
-<!-- 第一行：首页大标题 -->
-<div class="site-title">
-  <a href="../index.html">RENCLINKCREAKY</a>
-</div>
+<div class="site-title"><a href="../index.html">RENCLINKCREAKY</a></div>
 
-<!-- 第二行：四个子页面导航 -->
 <div class="main-nav">
-  <a href="../comic/chapter1.html">Comic</a>
+  <a id="comic-nav" href="#">Comic</a>
   <a href="index.html">Archive</a>
   <a href="../gallery/index.html">Gallery</a>
   <a href="../characters/index.html">Characters</a>
 </div>
 
-<!-- 第三行：Archive 居中标题 -->
-<h2 class="archive-title">Archive</h2>
-
-<!-- 第四行：Volume 1 左对齐 -->
-<h2 class="volume-title">Volume 1</h2>
-
-<!-- 第五行：缩略图网格 -->
-<div class="thumbs-container">
-  <div class="thumb-item">
-    <a href="../comic/chapter1.html">
-      <img src="../images/ch1_01.png" alt="Renclink Unintentionally" loading="lazy">
-      <span>Renclink Unintentionally</span>
-    </a>
-  </div>
-  <div class="thumb-item">
-    <a href="../comic/chapter2.html">
-      <img src="../images/ch2_01.png" alt="Chapter 2" loading="lazy">
-      <span>Chapter 2</span>
-    </a>
-  </div>
-  <div class="thumb-item">
-    <a href="../comic/chapter3.html">
-      <img src="../images/ch3_01.png" alt="Chapter 3" loading="lazy">
-      <span>Chapter 3</span>
-    </a>
-  </div>
-</div>
-
-<!-- 页尾 -->
-<footer>
-  © 2026 Renclinkcreaky. All rights reserved.
-</footer>
-
-</body>
-</html>
+<div class="socials">
+  <a href="mailto:jwh948754@gmail.com"><svg viewBox="0 0 24 24"><path d="M2 4h20v16H2V4zm10
