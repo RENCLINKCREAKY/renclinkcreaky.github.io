@@ -1,31 +1,138 @@
 <!DOCTYPE html>
 <html lang="zh">
 <head>
-  <meta charset="UTF-8">
-  <title>Gallery - RENCLINKCREAKY</title>
-  <style>
-    body { background:#000; color:#eee; font-family:sans-serif; text-align:center; }
-    img { width:100%; max-width:600px; margin:20px auto; display:block; }
-    .nav a { color:#f5c542; margin:0 10px; text-decoration:none; }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gallery - RENCLINKCREAKY</title>
+    <style>
+        /* 參考 Lackadaisy 的配色與基本設定 */
+        body {
+            background-color: #000;
+            color: #eee;
+            font-family: "Georgia", serif; /* 使用更具復古感的字體 */
+            margin: 0;
+            padding: 0;
+            line-height: 1.6;
+        }
+
+        /* 頂部導航欄 - 模仿 Lackadaisy 的 #nav 結構 */
+        nav {
+            background-color: #111;
+            border-bottom: 1px solid #333;
+            padding: 15px 0;
+            text-align: center;
+        }
+
+        nav a {
+            color: #f5c542; /* 經典金黃色 */
+            margin: 0 15px;
+            text-decoration: none;
+            text-transform: uppercase;
+            font-weight: bold;
+            letter-spacing: 1px;
+            transition: color 0.3s;
+        }
+
+        nav a:hover {
+            color: #fff;
+            text-shadow: 0 0 5px #f5c542;
+        }
+
+        /* 內容容器 - 參考 Lackadaisy 的 .container */
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 50px;
+        }
+
+        h1 {
+            font-size: 2.5em;
+            color: #f5c542;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+        }
+
+        p {
+            color: #bbb;
+            font-style: italic;
+        }
+
+        /* Gallery 網格佈局 - 參考 .gallery-container */
+        .gallery-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 20px;
+            justify-items: center;
+        }
+
+        .gallery-container a {
+            display: block;
+            border: 3px solid #222;
+            background: #080808;
+            padding: 5px;
+            transition: all 0.3s ease;
+        }
+
+        .gallery-container img {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        /* 懸停效果：邊框變色並輕微放大 */
+        .gallery-container a:hover {
+            border-color: #f5c542;
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(245, 197, 66, 0.3);
+        }
+
+        footer {
+            text-align: center;
+            padding: 30px;
+            border-top: 1px solid #333;
+            color: #666;
+            font-size: 0.9em;
+            margin-top: 50px;
+        }
+    </style>
 </head>
-<body>
+<body class="standard">
 
-<!-- 顶部导航 -->
-<nav style="background:#111; padding:10px; text-align:center;">
-  <a href="../index.html">RENCLINKCREAKY</a>
-  <a href="../comic/chapter1.html">Comic</a>
-  <a href="../archive/index.html">Archive</a>
-  <a href="index.html">Gallery</a>
-  <a href="../characters/index.html">Characters</a>
-</nav>
+    <nav>
+        <a href="../index.html">RENCLINKCREAKY</a>
+        <a href="../comic/chapter1.html">Comic</a>
+        <a href="../archive/index.html">Archive</a>
+        <a href="index.html">Gallery</a>
+        <a href="../characters/index.html">Characters</a>
+    </nav>
 
-<h1>Gallery</h1>
-<p>这里放你的漫画插画或作品展示</p>
+    <div class="container">
+        <main>
+            <header>
+                <h1>Gallery</h1> [cite: 683, 364]
+                <p>这里放你的漫画插画或作品展示</p> 
+            </header>
 
-<!-- 示例图片 -->
-<img src="../images/ch1_01.png">
-<img src="../images/ch1_02.png">
+            <div class="gallery-container"> 
+                <a href="#">
+                    <img src="../images/ch1_01.png" alt="作品 1"> [cite: 365]
+                </a>
+                <a href="#">
+                    <img src="../images/ch1_02.png" alt="作品 2"> [cite: 366]
+                </a>
+                </div>
+        </main>
+    </div>
+
+    <footer>
+        RENCLINKCREAKY &copy; 2026. All rights reserved.
+    </footer>
 
 </body>
 </html>
