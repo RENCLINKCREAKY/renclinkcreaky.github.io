@@ -6,78 +6,109 @@
   <title>Gallery - RENCLINKCREAKY</title>
   <style>
     body {
-      background: #000;
-      color: #eee;
-      font-family: 'Arial', sans-serif;
-      margin: 0;
-      padding: 0;
-      text-align: center;
+      background:#000;
+      color:#eee;
+      font-family:'Arial', sans-serif;
+      text-align:center;
+      margin:0;
+      padding:0;
     }
-    nav {
-      background: #111;
-      padding: 10px;
+    /* 首页大标题样式保持统一 */
+    .site-title {
+      font-size:60px;
+      font-weight:bold;
+      padding:50px 0 20px 0;
+      color:#f5c542;
+      text-shadow: 2px 2px 5px #222;
     }
-    nav a {
-      color: #f5c542;
-      margin: 0 10px;
-      text-decoration: none;
+    .site-title a {
+      color:#f5c542;
+      text-decoration:none;
     }
-    h1, h2, h3 {
-      margin: 20px 0 10px 0;
+    .site-title a:hover {
+      color:#fff;
+      text-shadow:1px 1px 5px #f5c542;
     }
+    /* 导航统一 */
+    .main-nav {
+      margin-bottom:40px;
+    }
+    .main-nav a {
+      color:#f5c542;
+      text-decoration:none;
+      font-size:24px;
+      margin:0 25px;
+      display:inline-block;
+      padding:10px 0;
+      transition: color 0.3s, text-shadow 0.3s;
+    }
+    .main-nav a:hover {
+      color:#fff;
+      text-shadow:1px 1px 5px #f5c542;
+    }
+
+    h1 {
+      margin-bottom:10px;
+    }
+    p {
+      color:#ccc;
+    }
+
+    /* Gallery 图片网格 */
     #gallery {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
-      gap: 15px;
-      padding: 10px;
+      display:grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap:20px;
+      max-width:1000px;
+      margin:0 auto 50px auto;
+      padding:0 20px;
     }
     #gallery a {
-      display: block;
-      width: 200px;
-      text-align: center;
-      color: #eee;
-      text-decoration: none;
+      display:block;
+      text-decoration:none;
+      color:#eee;
+      text-align:center;
     }
     #gallery img {
-      width: 100%;
-      border: 2px solid #333;
-      border-radius: 8px;
-      transition: transform 0.2s, border-color 0.2s;
+      width:100%;
+      border:2px solid #f5c542;
+      border-radius:8px;
+      transition: transform 0.3s;
     }
     #gallery img:hover {
       transform: scale(1.05);
-      border-color: #f5c542;
     }
+
     footer {
-      background: #111;
-      color: #888;
-      padding: 15px;
-      margin-top: 20px;
+      text-align:center;
+      margin:50px 0;
+      font-size:14px;
+      color:#888;
     }
   </style>
 </head>
 <body>
 
-<!-- 顶部导航 -->
-<nav>
+<!-- 大标题 -->
+<div class="site-title">
   <a href="../index.html">RENCLINKCREAKY</a>
+</div>
+
+<!-- 主导航 -->
+<div class="main-nav">
   <a href="../comic/chapter1.html">Comic</a>
   <a href="../archive/index.html">Archive</a>
   <a href="index.html">Gallery</a>
   <a href="../characters/index.html">Characters</a>
-</nav>
+</div>
 
 <h1>Gallery</h1>
-<p>这里放你的漫画插画或作品展示</p>
+<p>这里展示我的漫画插画或作品</p>
 
 <div id="gallery">
-  <h2>插画 Illustrations</h2>
   <a href="../images/ch1_01.png"><img src="../images/ch1_01.png" alt="作品1"></a>
   <a href="../images/ch1_02.png"><img src="../images/ch1_02.png" alt="作品2"></a>
-
   <!-- 可以继续添加更多图片 -->
-  <!-- <a href="路径"><img src="路径" alt="描述"></a> -->
 </div>
 
 <footer>
