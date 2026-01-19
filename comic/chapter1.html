@@ -2,45 +2,73 @@
 <html lang="zh">
 <head>
   <meta charset="UTF-8">
-  <title>第一话</title>
+  <title>Renclink Unintentionally</title>
   <style>
-    body { background: #000; color: #eee; text-align: center; font-family: sans-serif; }
-    img { width: 100%; max-width: 900px; margin: 20px auto; display: block; }
-    .nav a { color: #f5c542; font-size: 18px; margin: 10px; display: inline-block; }
+    body { background:#000; color:#eee; font-family:sans-serif; text-align:center; margin:0; padding:0; }
+    a { color:#f5c542; text-decoration:none; margin:0 10px; font-weight:bold; }
+    nav.top-nav, nav.sub-nav { background:#111; padding:10px 0; }
+    nav.top-nav a { font-size:24px; }
+    nav.sub-nav a { font-size:18px; }
+    .comic-img { width:100%; max-width:900px; margin:20px auto; display:block; }
+    .nav-bottom { display:flex; justify-content:center; align-items:center; margin:20px 0; gap:20px; }
+    .nav-bottom a, select { font-size:18px; color:#f5c542; background:#111; border:none; padding:5px 10px; }
+    select { cursor:pointer; }
   </style>
 </head>
 <body>
-  <h1>第一话</h1>
 
-  <!-- 漫画图片 -->
-  <img src="../images/ch1_01.png">
-  <!-- 如果有第二页，继续添加 -->
-  <!-- <img src="../images/ch1_02.png"> -->
-  <!-- <img src="../images/ch1_03.png"> -->
+<!-- 顶部两行导航 -->
+<nav class="top-nav">
+  <a href="../index.html">RENCLINKCREAKY</a>
+</nav>
+<nav class="sub-nav">
+  <a href="chapter1.html">Comic</a>
+  <a href="../archive/index.html">Archive</a>
+  <a href="../gallery/index.html">Gallery</a>
+  <a href="../characters/index.html">Characters</a>
+</nav>
 
-  <!-- 自动导航按钮 -->
-  <div class="nav">
-    <a href="../index.html">← 返回首页</a>
-  </div>
+<h1>Renclink Unintentionally</h1>
 
-  <script>
-    const current = 1; // 当前章节号
-    const total = 2;   // 总章节数（如果只有第一话，这里写1；以后上传第二话改2）
-    const navDiv = document.querySelector('.nav');
+<!-- 漫画图片 -->
+<img class="comic-img" src="../images/ch1_01.png" alt="第一话">
 
-    if (current > 1) {
-      const prev = document.createElement('a');
-      prev.href = `chapter${current - 1}.html`;
-      prev.textContent = '← 上一话';
-      navDiv.appendChild(prev);
-    }
+<!-- 下方导航条 -->
+<div class="nav-bottom">
+  <a href="../index.html">← 返回首页</a>
+  
+  <select id="chapterSelect">
+    <option value="chapter1.html" selected>第一话</option>
+    <option value="chapter2.html">第二话</option>
+    <option value="chapter3.html">第三话</option>
+    <!-- 后续章节可以在这里添加 -->
+  </select>
+  
+  <a href="chapter2.html">下一话 →</a>
+</div>
 
-    if (current < total) {
-      const next = document.createElement('a');
-      next.href = `chapter${current + 1}.html`;
-      next.textContent = '下一话 →';
-      navDiv.appendChild(next);
-    }
-  </script>
+<!-- 上方也加导航条 -->
+<div class="nav-bottom">
+  <a href="../index.html">← 返回首页</a>
+  
+  <select id="chapterSelectTop">
+    <option value="chapter1.html" selected>第一话</option>
+    <option value="chapter2.html">第二话</option>
+    <option value="chapter3.html">第三话</option>
+  </select>
+  
+  <a href="chapter2.html">下一话 →</a>
+</div>
+
+<script>
+  // 下拉菜单跳转
+  document.getElementById('chapterSelect').onchange = function() {
+    location.href = this.value;
+  };
+  document.getElementById('chapterSelectTop').onchange = function() {
+    location.href = this.value;
+  };
+</script>
+
 </body>
 </html>
