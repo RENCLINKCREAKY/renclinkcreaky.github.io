@@ -117,7 +117,10 @@ nav { background:#000; border-bottom:2px solid var(--accent); height:52px; displ
 
 <nav>
   <div class="logo">RENCLINK<span>CREAKY</span> <span style="font-size:12px;color:var(--muted);font-weight:400;letter-spacing:0">/ Admin</span></div>
-  <div class="nav-status" id="nav-status"></div>
+  <div style="display:flex; gap:12px; align-items:center;">
+    <button class="ch-edit-btn" onclick="showScreen('screen-site')" style="background:#1D9E75; color:white;">站点管理</button>
+    <div class="nav-status" id="nav-status"></div>
+  </div>
 </nav>
 
 <!-- ===================== SETUP SCREEN ===================== -->
@@ -204,6 +207,48 @@ nav { background:#000; border-bottom:2px solid var(--accent); height:52px; displ
     <button class="btn-back" onclick="showMain()">← Back</button>
     <button class="btn-primary" id="publish-btn" onclick="publish()" style="margin-top:0;flex:1">Publish Chapter</button>
   </div>
+</div>
+
+<!-- ===================== SITE MANAGEMENT SCREEN ===================== -->
+<div class="screen" id="screen-site">
+  <div class="section-title">站点内容管理</div>
+  
+  <!-- 主页设置 -->
+  <div style="background:var(--surface); border-radius:12px; padding:20px; margin-bottom:20px;">
+    <div style="font-weight:bold; margin-bottom:12px;">🏠 主页设置</div>
+    <label class="field-label">英雄图片 URL</label>
+    <input class="field-input" id="hero-image" placeholder="images/hero.png">
+    <label class="field-label">最新章节链接</label>
+    <input class="field-input" id="latest-link" placeholder="comic/chapter2.html">
+    <label class="field-label">最新章节缩略图 URL</label>
+    <input class="field-input" id="latest-thumb" placeholder="images/ch2_01.png">
+    <label class="field-label">最新章节显示文字</label>
+    <input class="field-input" id="latest-text" placeholder="Chapter 2">
+  </div>
+  
+  <!-- 角色设置 -->
+  <div style="background:var(--surface); border-radius:12px; padding:20px; margin-bottom:20px;">
+    <div style="font-weight:bold; margin-bottom:12px;">👥 角色列表 (JSON 格式)</div>
+    <textarea id="characters-json" rows="6" class="field-input" style="font-family:monospace;">[
+  {"name":"Mitzi","image":"images/mitzi.png","desc":"主角，开朗活泼"},
+  {"name":"Iris","image":"images/iris.png","desc":"神秘的支持者"},
+  {"name":"Walt","image":"images/walt.png","desc":"亦敌亦友"}
+]</textarea>
+    <div class="field-label" style="margin-top:8px;">💡 提示：修改后点击保存，会自动更新 characters/index.html</div>
+  </div>
+  
+  <!-- 画廊设置 -->
+  <div style="background:var(--surface); border-radius:12px; padding:20px; margin-bottom:20px;">
+    <div style="font-weight:bold; margin-bottom:12px;">🖼️ 画廊图片列表 (JSON 格式)</div>
+    <textarea id="gallery-json" rows="6" class="field-input" style="font-family:monospace;">[
+  {"src":"images/gallery1.jpg","caption":"封面插画"},
+  {"src":"images/gallery2.jpg","caption":"角色草稿"}
+]</textarea>
+    <div class="field-label" style="margin-top:8px;">💡 提示：修改后点击保存，会自动更新 gallery/index.html</div>
+  </div>
+  
+  <button class="btn-primary" onclick="saveSiteContent()" style="margin-top:10px;">💾 保存所有站点内容</button>
+  <button class="btn-back" onclick="showMain()" style="margin-top:12px;">← 返回章节管理</button>
 </div>
 
 <!-- ===================== EDIT SCREEN ===================== -->
@@ -295,6 +340,7 @@ function resetToken() { localStorage.removeItem("rc_token"); showScreen("screen-
 function showScreen(id) {
   document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"));
   document.getElementById(id).classList.add("active");
+  if (id === "screen-site") loadSiteContent();
 }
 function showMain() { showScreen("screen-main"); loadChapters(); }
 function showUpload() { uploadedFiles = []; document.getElementById("pages-preview").innerHTML = ""; document.getElementById("chapter-title-input").value = ""; document.getElementById("progress-wrap").classList.remove("active"); showScreen("screen-upload"); }
@@ -998,6 +1044,103 @@ async function saveEdit() {
         console.error(e);
     }
     btn.disabled = false; btn.textContent = "Save Changes";
+}
+
+// ==================== 站点内容管理 ====================
+async function loadSiteContent() {
+  try {
+    // 读取 index.html
+    const indexRes = await apiGet("index.html");
+    let indexHtml = atob(indexRes.content.replace(/\n/g, ""));
+    
+    // 提取英雄图片
+    let heroMatch = indexHtml.match(/<img src="([^"]+)" alt="Renclinkcreaky Hero Image">/);
+    if (heroMatch) document.getElementById("hero-image").value = heroMatch[1];
+    
+    // 提取最新章节信息
+    let latestLinkMatch = indexHtml.match(/<a id="latest-link" href="([^"]+)">/);
+    if (latestLinkMatch) document.getElementById("latest-link").value = latestLinkMatch[1];
+    
+    let latestThumbMatch = indexHtml.match(/<img id="latest-thumb" src="([^"]+)" alt="Latest Comic">/);
+    if (latestThumbMatch) document.getElementById("latest-thumb").value = latestThumbMatch[1];
+    
+    let latestTextMatch = indexHtml.match(/<span id="latest-text">(.*?)<\/span>/);
+    if (latestTextMatch) document.getElementById("latest-text").value = latestTextMatch[1];
+    
+    // 读取 characters/index.html 并尝试解析角色数据（简单方式：从现有 HTML 结构提取太复杂，直接用预设 JSON）
+    // 这里为了简化，我们保留预设 JSON，用户可以手动修改后保存。你也可以从现有 HTML 解析，但会增加复杂度。
+    // 如果需要从现有页面解析，我可以另外实现，但建议直接在 admin 里编辑 JSON。
+    
+    // 读取 gallery/index.html 同理，这里不自动解析，用户直接修改 JSON。
+    
+  } catch(e) {
+    showToast("读取站点内容失败: " + e.message, "error");
+  }
+}
+
+async function saveSiteContent() {
+  try {
+    // 1. 更新 index.html
+    const indexRes = await apiGet("index.html");
+    let indexHtml = atob(indexRes.content.replace(/\n/g, ""));
+    
+    const heroImg = document.getElementById("hero-image").value;
+    const latestLink = document.getElementById("latest-link").value;
+    const latestThumb = document.getElementById("latest-thumb").value;
+    const latestText = document.getElementById("latest-text").value;
+    
+    indexHtml = indexHtml.replace(/<img src="[^"]+" alt="Renclinkcreaky Hero Image">/, `<img src="${heroImg}" alt="Renclinkcreaky Hero Image">`);
+    indexHtml = indexHtml.replace(/<a id="latest-link" href="[^"]+">/, `<a id="latest-link" href="${latestLink}">`);
+    indexHtml = indexHtml.replace(/<img id="latest-thumb" src="[^"]+" alt="Latest Comic">/, `<img id="latest-thumb" src="${latestThumb}" alt="Latest Comic">`);
+    indexHtml = indexHtml.replace(/<span id="latest-text">.*?<\/span>/, `<span id="latest-text">${latestText}</span>`);
+    
+    await apiPut("index.html", strToBase64(indexHtml), "Update homepage content", indexRes.sha);
+    
+    // 2. 更新 characters/index.html（根据 JSON 生成完整页面）
+    let charactersJson = document.getElementById("characters-json").value;
+    let chars = JSON.parse(charactersJson);
+    let charHtml = `<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8"><title>Characters — RENCLINKCREAKY</title><link rel="stylesheet" href="/style.css"></head>
+<body>
+<div class="site-title"><a href="/index.html">RENCLINKCREAKY</a></div>
+<div class="main-nav"><a href="/comic/chapter1.html">Comic</a><a href="/archive/index.html">Archive</a><a href="/gallery/index.html">Gallery</a><a href="/characters/index.html">Characters</a></div>
+<div class="section-title" style="margin:40px 0 20px;">Characters</div>
+<div class="characters-grid">
+${chars.map(c => `<div class="character-item"><img src="${c.image}" alt="${c.name}"><span>${c.name}</span><p style="font-size:12px; color:#aaa;">${c.desc}</p></div>`).join('')}
+</div>
+<footer>© 2026 Renclinkcreaky. All rights reserved.</footer>
+</body>
+</html>`;
+    
+    const charRes = await apiGet("characters/index.html").catch(() => null);
+    await apiPut("characters/index.html", strToBase64(charHtml), "Update characters", charRes?.sha);
+    
+    // 3. 更新 gallery/index.html
+    let galleryJson = document.getElementById("gallery-json").value;
+    let galleryItems = JSON.parse(galleryJson);
+    let galleryHtml = `<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8"><title>Gallery — RENCLINKCREAKY</title><link rel="stylesheet" href="/style.css"></head>
+<body>
+<div class="site-title"><a href="/index.html">RENCLINKCREAKY</a></div>
+<div class="main-nav"><a href="/comic/chapter1.html">Comic</a><a href="/archive/index.html">Archive</a><a href="/gallery/index.html">Gallery</a><a href="/characters/index.html">Characters</a></div>
+<div class="section-title" style="margin:40px 0 20px;">Gallery</div>
+<div class="characters-grid">
+${galleryItems.map(item => `<div class="character-item"><img src="${item.src}" alt="${item.caption}"><span>${item.caption}</span></div>`).join('')}
+</div>
+<footer>© 2026 Renclinkcreaky. All rights reserved.</footer>
+</body>
+</html>`;
+    
+    const galleryRes = await apiGet("gallery/index.html").catch(() => null);
+    await apiPut("gallery/index.html", strToBase64(galleryHtml), "Update gallery", galleryRes?.sha);
+    
+    showToast("站点内容已更新！", "success");
+  } catch(e) {
+    showToast("保存失败: " + e.message, "error");
+    console.error(e);
+  }
 }
 </script>
 </body>
