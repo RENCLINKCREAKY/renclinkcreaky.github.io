@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Comic Reader</title>
+    <style>
+        body {
+            background-color: #121212;
+            color: #f0e68a;
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+        #navigation {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px;
+        }
+        #prev, #next {
+            background-color: #f0e68a;
+            color: #121212;
+            border: none;
+            padding: 10px 20px;
+            cursor: pointer;
+        }
+        #prev:hover, #next:hover {
+            background-color: #d5c67a;
+        }
+        #page {
+            text-align: center;
+            font-size: 24px;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div id="navigation">
+        <button id="prev">Previous Chapter</button>
+        <div id="page">Chapter 1 - Page: <span id="page-number">1</span></div>
+        <button id="next">Next Chapter</button>
+    </div>
+    <script>
+        const totalPages = 10;
+        let currentPage = parseInt(localStorage.getItem('currentPage')) || 1;
+
+        function updatePage() {
+            document.getElementById('page-number').innerText = currentPage;
+            localStorage.setItem('currentPage', currentPage);
+        }
+
+        document.getElementById('prev').addEventListener('click', () => {
+            if (currentPage > 1) {
+                currentPage--;
+                updatePage();
+            }
+        });
+
+        document.getElementById('next').addEventListener('click', () => {
+            if (currentPage < totalPages) {
+                currentPage++;
+                updatePage();
+            }
+        });
+
+        document.addEventListener('keydown', (event) => {
+            if (event.key === "ArrowLeft") {
+                document.getElementById('prev').click();
+            } else if (event.key === "ArrowRight") {
+                document.getElementById('next').click();
+            }
+        });
+
+        updatePage();
+    </script>
+</body>
+</html>
