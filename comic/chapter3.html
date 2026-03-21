@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>sssss â RENCLINKCREAKY</title>
+<title>sssss — RENCLINKCREAKY</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
 :root{--accent:#e8153a;--bg:#111;--nav-bg:#000;--surface:#1c1c1c;--surface2:#262626;--text:#f0f0f0;--muted:#777;--border:#2a2a2a;}
@@ -74,8 +74,8 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans TC',sans-seri
 </div>
 <div class="progress-bar"><div class="progress-fill" id="pf" style="width:0%"></div></div>
 <div id="scroll-view"><div class="pages">
-    <img src="../images/ch3_01.png" alt="Chapter 3 Page 1">
-    <img src="../images/ch3_02.png" alt="Chapter 3 Page 2">
+    <img src="../images/ch3_01.png" alt="sssss Page 1">
+    <img src="../images/ch3_02.png" alt="sssss Page 2">
 </div></div>
 <div id="page-view">
   <div class="page-container" id="pgc" onclick="np()"><img id="pgi" src="" alt=""></div>
@@ -85,7 +85,7 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans TC',sans-seri
 <div class="end-card"><div class="end-line">End of sssss</div></div>
 <div class="chapter-nav">
   <a class="cnav-btn " href="https://renclinkcreaky.github.io/comic/chapter2.html">&#8592; Previous<small>Chapter 2</small></a>
-  <a class="cnav-btn disabled" href="#" id="next-ch-btn">Next &#8594;<small>Coming soon</small></a>
+  <a class="cnav-btn disabled" href="#">Next &#8594;<small>Coming soon</small></a>
 </div>
 <hr class="divider">
 <div class="reactions">
@@ -105,7 +105,7 @@ let cp=0,vm="scroll";
 function sv(m){vm=m;document.getElementById("scroll-view").style.display=m==="scroll"?"block":"none";document.getElementById("page-view").style.display=m==="page"?"block":"none";document.getElementById("bs").classList.toggle("active",m==="scroll");document.getElementById("bp").classList.toggle("active",m==="page");if(m==="page"){cp=0;sp(0);}up();}
 function sp(i){cp=Math.max(0,Math.min(P.length-1,i));document.getElementById("pgi").src=P[cp];document.getElementById("pprev").disabled=cp===0;document.getElementById("pnext").disabled=cp===P.length-1;document.getElementById("pc").textContent=(cp+1)+" / "+P.length;window.scrollTo(0,0);up();}
 function np(){if(cp<P.length-1)sp(cp+1);}function pp(){if(cp>0)sp(cp-1);}
-document.addEventListener("keydown",e=>{if(vm!=="page")return;if(e.key==="ArrowRight"||e.key==="ArrowDown")np();if(e.key==="ArrowLeft"||e.key==="ArrowUp")pp();});
+document.addEventListener("keydown",function(e){if(vm!=="page")return;if(e.key==="ArrowRight"||e.key==="ArrowLeft"||e.key==="ArrowDown"||e.key==="ArrowUp")e.preventDefault();if(e.key==="ArrowRight"||e.key==="ArrowDown")np();else if(e.key==="ArrowLeft"||e.key==="ArrowUp")pp();});
 let tx=0;document.addEventListener("touchstart",e=>{tx=e.touches[0].clientX;});document.addEventListener("touchend",e=>{if(vm!=="page")return;const d=tx-e.changedTouches[0].clientX;if(Math.abs(d)>50){d>0?np():pp();}});
 function up(){if(vm==="scroll"){const p=(window.scrollY/(document.body.scrollHeight-window.innerHeight))*100;document.getElementById("pf").style.width=Math.min(p,100)+"%";document.getElementById("pc").textContent=Math.ceil((p/100)*P.length)+" / "+P.length;}else{document.getElementById("pf").style.width=((cp+1)/P.length*100)+"%";}}
 window.addEventListener("scroll",up);up();
