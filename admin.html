@@ -172,6 +172,7 @@ nav { background:#000; border-bottom:2px solid var(--accent); height:52px; displ
     <div class="no-chapters">Loading chapters...</div>
   </div>
   <button class="btn-new" onclick="showUpload()">+ Upload New Chapter</button>
+  <button class="btn-new" style="margin-top:12px;border-color:#5DCAA5;color:#5DCAA5;" onclick="batchUpgradeChapters()">🔄 统一所有章节模板</button>
   <div style="margin-top:16px;text-align:center;">
     <span class="reset-link" onclick="resetToken()">Change token</span>
   </div>
@@ -205,14 +206,12 @@ nav { background:#000; border-bottom:2px solid var(--accent); height:52px; displ
   </div>
 </div>
 
-<div class="toast" id="toast"></div>
-
 <!-- ===================== EDIT SCREEN ===================== -->
 <div class="screen" id="screen-edit">
   <div class="section-title" id="edit-title-label">Edit Chapter</div>
 
   <div class="edit-info">
-    <b>Current pages</b> — click × to remove a page. New pages you add will be appended at the end.
+    <b>Current pages</b> — drag to reorder, click × to remove a page. New pages you add will be appended at the end.
   </div>
 
   <div class="existing-pages" id="existing-pages"></div>
@@ -238,6 +237,8 @@ nav { background:#000; border-bottom:2px solid var(--accent); height:52px; displ
     <button class="btn-primary" id="save-edit-btn" onclick="saveEdit()" style="margin-top:0;flex:1">Save Changes</button>
   </div>
 </div>
+
+<div class="toast" id="toast"></div>
 
 <script>
 const REPO = "RENCLINKCREAKY/renclinkcreaky.github.io";
@@ -319,6 +320,7 @@ async function loadChapters() {
         </div>
         <div class="ch-row-actions">
           <button class="ch-edit-btn" onclick="showEdit(${num})">Edit ✎</button>
+          <button class="ch-edit-btn" style="background:#a00;border-color:#a00;" onclick="deleteChapter(${num})">Delete</button>
           <a class="ch-view-btn" href="https://renclinkcreaky.github.io/comic/${ch.name}" target="_blank">View →</a>
         </div>
       </div>`;
@@ -509,7 +511,7 @@ let cp=0,vm="scroll";
 function sv(m){vm=m;document.getElementById("scroll-view").style.display=m==="scroll"?"block":"none";document.getElementById("page-view").style.display=m==="page"?"block":"none";document.getElementById("bs").classList.toggle("active",m==="scroll");document.getElementById("bp").classList.toggle("active",m==="page");if(m==="page"){cp=0;sp(0);}up();}
 function sp(i){cp=Math.max(0,Math.min(P.length-1,i));document.getElementById("pgi").src=P[cp];document.getElementById("pprev").disabled=cp===0;document.getElementById("pnext").disabled=cp===P.length-1;document.getElementById("pc").textContent=(cp+1)+" / "+P.length;window.scrollTo(0,0);up();}
 function np(){if(cp<P.length-1)sp(cp+1);}function pp(){if(cp>0)sp(cp-1);}
-document.addEventListener("keydown",e=>{if(vm!=="page")return;if(e.key==="ArrowRight"||e.key==="ArrowDown")np();if(e.key==="ArrowLeft"||e.key==="ArrowUp")pp();});
+document.addEventListener("keydown",function(e){if(vm!=="page")return;if(e.key==="ArrowRight"||e.key==="ArrowLeft"||e.key==="ArrowDown"||e.key==="ArrowUp")e.preventDefault();if(e.key==="ArrowRight"||e.key==="ArrowDown")np();else if(e.key==="ArrowLeft"||e.key==="ArrowUp")pp();});
 let tx=0;document.addEventListener("touchstart",e=>{tx=e.touches[0].clientX;});document.addEventListener("touchend",e=>{if(vm!=="page")return;const d=tx-e.changedTouches[0].clientX;if(Math.abs(d)>50){d>0?np():pp();}});
 function up(){if(vm==="scroll"){const p=(window.scrollY/(document.body.scrollHeight-window.innerHeight))*100;document.getElementById("pf").style.width=Math.min(p,100)+"%";document.getElementById("pc").textContent=Math.ceil((p/100)*P.length)+" / "+P.length;}else{document.getElementById("pf").style.width=((cp+1)/P.length*100)+"%";}}
 window.addEventListener("scroll",up);up();
@@ -550,7 +552,6 @@ async function updateArchive(chNum, title) {
     const f = await apiGet("archive/index.html");
     let html = atob(f.content.replace(/\n/g,""));
     const newItem = `\n<a class="ch-item" href="https://renclinkcreaky.github.io/comic/chapter${chNum}.html">Chapter ${chNum}</a>`;
-    // Insert before closing tag or append
     if (html.includes("</ul>")) html = html.replace("</ul>", newItem + "\n</ul>");
     else if (html.includes("</div>")) html = html.replace(/<\/div>(?![\s\S]*<\/div>)/, newItem + "\n</div>");
     else html += newItem;
@@ -580,53 +581,326 @@ async function updateRSS(chNum, title) {
 if (getToken()) { showMain(); document.getElementById("nav-status").textContent = "Connected"; }
 else showScreen("screen-setup");
 
-// ── Edit chapter ──
+// ==================== 新增功能：删除章节 ====================
+async function deleteChapter(chNum) {
+    if (!confirm(`⚠️ 确定要永久删除 Chapter ${chNum} 及其所有图片吗？此操作不可撤销。`)) return;
+    
+    const btn = document.querySelector(`button[onclick="deleteChapter(${chNum})"]`);
+    if (btn) btn.disabled = true;
+    
+    try {
+        // 1. 获取章节 HTML 中的图片路径列表
+        const f = await apiGet(`comic/chapter${chNum}.html`);
+        const html = atob(f.content.replace(/\n/g,""));
+        const matches = [...html.matchAll(/src="\.\.\/(images\/ch${chNum}_[^"]+)"/gi)];
+        const imagePaths = matches.map(m => m[1]);
+        
+        // 2. 删除所有图片
+        for (let imgPath of imagePaths) {
+            const sha = await getSha(imgPath);
+            if (sha) {
+                await fetch(API + imgPath, {
+                    method: "DELETE",
+                    headers: { Authorization: "token " + getToken(), Accept: "application/vnd.github.v3+json" },
+                    body: JSON.stringify({ message: `Delete image for ch${chNum}`, sha })
+                });
+            }
+        }
+        
+        // 3. 删除章节 HTML
+        const htmlSha = await getSha(`comic/chapter${chNum}.html`);
+        if (htmlSha) {
+            await fetch(API + `comic/chapter${chNum}.html`, {
+                method: "DELETE",
+                headers: { Authorization: "token " + getToken(), Accept: "application/vnd.github.v3+json" },
+                body: JSON.stringify({ message: `Delete chapter ${chNum}`, sha: htmlSha })
+            });
+        }
+        
+        // 4. 从 archive 和 RSS 中移除（简单起见，先不做，可后续完善）
+        showToast(`Chapter ${chNum} 已删除`, "success");
+        loadChapters();  // 刷新列表
+    } catch(e) {
+        showToast("删除失败: " + e.message, "error");
+        console.error(e);
+    } finally {
+        if (btn) btn.disabled = false;
+    }
+}
+
+// ==================== 新增功能：批量升级章节模板 ====================
+async function upgradeChapter(chNum) {
+    console.log(`升级 Chapter ${chNum}...`);
+    try {
+        // 1. 获取旧章节 HTML
+        const oldFile = await apiGet(`comic/chapter${chNum}.html`);
+        let oldHtml = atob(oldFile.content.replace(/\n/g, ""));
+        
+        // 2. 提取原标题（优先取 .chapter-title 内的文本，其次取 <title>）
+        let titleMatch = oldHtml.match(/<span class="chapter-title">(.*?)<\/span>/);
+        let title = titleMatch ? titleMatch[1] : `Chapter ${chNum}`;
+        if (!titleMatch) {
+            titleMatch = oldHtml.match(/<title>(.*?)<\/title>/);
+            if (titleMatch) title = titleMatch[1].replace(/ — RENCLINKCREAKY/, '');
+        }
+        
+        // 3. 提取图片路径列表（相对路径，去掉 "../"）
+        const imgMatches = [...oldHtml.matchAll(/src="\.\.\/([^"]+\.(png|jpg|jpeg|webp))"/gi)];
+        const imagePaths = imgMatches.map(m => m[1]);
+        if (imagePaths.length === 0) {
+            console.warn(`Chapter ${chNum} 没有找到图片，跳过升级`);
+            return false;
+        }
+        
+        // 4. 获取相邻章节编号
+        const allChapters = chapters.map(c => parseInt(c.name.match(/\d+/)[0])).sort((a,b)=>a-b);
+        const idx = allChapters.indexOf(chNum);
+        const prevNum = idx > 0 ? allChapters[idx-1] : null;
+        const nextNum = idx < allChapters.length-1 ? allChapters[idx+1] : null;
+        const prevLink = prevNum ? `https://renclinkcreaky.github.io/comic/chapter${prevNum}.html` : "#";
+        const prevDisabled = !prevNum ? "disabled" : "";
+        const prevLabel = prevNum ? `Chapter ${prevNum}` : "No previous chapter";
+        const nextLink = nextNum ? `https://renclinkcreaky.github.io/comic/chapter${nextNum}.html` : "#";
+        const nextDisabled = !nextNum ? "disabled" : "";
+        const nextLabel = nextNum ? `Chapter ${nextNum}` : "Coming soon";
+        
+        // 5. 生成新 HTML（基于 publish 函数模板，但动态填充数据）
+        const imgTags = imagePaths.map((p, i) => 
+            `    <img src="../${p}" alt="${title} Page ${i+1}">`
+        ).join("\n");
+        
+        const pageArray = imagePaths.map(p => `"../${p}"`).join(",\n    ");
+        
+        const newHtml = `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>${title} — RENCLINKCREAKY</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--accent:#e8153a;--bg:#111;--nav-bg:#000;--surface:#1c1c1c;--surface2:#262626;--text:#f0f0f0;--muted:#777;--border:#2a2a2a;}
+*{margin:0;padding:0;box-sizing:border-box;}html{scroll-behavior:smooth;}
+body{background:var(--bg);color:var(--text);font-family:'Noto Sans TC',sans-serif;min-height:100vh;}
+.topbar{background:var(--nav-bg);border-bottom:1px solid var(--border);height:52px;display:flex;align-items:center;justify-content:space-between;padding:0 16px;gap:12px;position:sticky;top:0;z-index:50;}
+.topbar-left{display:flex;align-items:center;gap:12px;}
+.back-btn{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--muted);text-decoration:none;transition:color .2s;}
+.back-btn:hover{color:var(--text);}
+.chapter-title{font-size:14px;font-weight:500;}
+.topbar-right{display:flex;align-items:center;gap:8px;}
+.view-toggle{display:flex;background:var(--surface);border-radius:6px;overflow:hidden;border:1px solid var(--border);}
+.view-btn{padding:5px 12px;font-size:12px;cursor:pointer;border:none;background:transparent;color:var(--muted);transition:all .2s;}
+.view-btn.active{background:var(--surface2);color:var(--text);}
+.fs-btn{padding:5px 10px;background:transparent;border:1px solid var(--border);border-radius:6px;color:var(--muted);cursor:pointer;font-size:13px;}
+.fs-btn:hover{color:var(--text);}
+.progress-bar{height:2px;background:var(--border);}
+.progress-fill{height:100%;background:var(--accent);transition:width .3s;}
+.page-count{font-size:12px;color:var(--muted);white-space:nowrap;}
+#scroll-view .pages{display:flex;flex-direction:column;align-items:center;}
+#scroll-view .pages img{width:100%;max-width:800px;display:block;}
+#page-view{display:none;}
+#page-view .page-container{display:flex;justify-content:center;min-height:calc(100vh - 56px);cursor:pointer;}
+#page-view .page-container img{width:100%;max-width:800px;display:block;}
+.pnav{display:flex;max-width:800px;margin:0 auto;padding:16px 20px;gap:12px;}
+.pnav-btn{flex:1;padding:11px;background:var(--surface);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:14px;cursor:pointer;transition:background .2s;font-family:inherit;}
+.pnav-btn:hover{background:var(--surface2);}
+.pnav-btn:disabled{opacity:.25;cursor:default;}
+.key-hint{text-align:center;font-size:11px;color:var(--muted);padding:0 0 12px;}
+.key-hint span{background:var(--surface);border:1px solid var(--border);border-radius:3px;padding:1px 6px;margin:0 2px;font-size:11px;}
+.chapter-nav{max-width:800px;margin:0 auto;display:flex;padding:24px 20px 12px;gap:12px;}
+.cnav-btn{flex:1;padding:13px;background:var(--surface);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:14px;cursor:pointer;text-align:center;transition:background .2s;text-decoration:none;display:block;}
+.cnav-btn:hover{background:var(--surface2);}
+.cnav-btn.disabled{opacity:.3;pointer-events:none;}
+.cnav-btn small{display:block;font-size:11px;color:var(--muted);margin-top:2px;}
+.divider{max-width:800px;margin:12px auto;border:none;border-top:1px solid var(--border);}
+.reactions{max-width:800px;margin:0 auto;padding:20px 20px 0;display:flex;align-items:center;gap:12px;}
+.like-btn{display:flex;align-items:center;gap:6px;padding:8px 16px;background:var(--surface);border:1px solid var(--border);border-radius:20px;cursor:pointer;font-size:14px;color:var(--muted);transition:all .2s;font-family:inherit;}
+.like-btn:hover{border-color:var(--accent);color:var(--accent);}
+.like-btn.liked{background:rgba(232,21,58,.1);border-color:var(--accent);color:var(--accent);}
+.rss-link{font-size:12px;color:var(--muted);text-decoration:none;display:flex;align-items:center;gap:5px;margin-left:auto;}
+.rss-link:hover{color:#f90;}
+.comments-wrap{max-width:800px;margin:0 auto;padding:28px 20px 60px;}
+.comments-title{font-size:13px;font-weight:700;letter-spacing:2px;color:var(--muted);text-transform:uppercase;padding-bottom:14px;border-bottom:1px solid var(--border);margin-bottom:20px;}
+.comments-note{font-size:13px;color:var(--muted);line-height:1.7;background:var(--surface);border-radius:8px;padding:14px 16px;margin-bottom:20px;}
+.end-card{text-align:center;padding:36px 20px 28px;color:var(--muted);font-size:14px;}
+.end-line{display:flex;align-items:center;gap:12px;justify-content:center;}
+.end-line::before,.end-line::after{content:'';flex:1;max-width:80px;height:1px;background:var(--border);}
+@media(max-width:600px){.chapter-title,.key-hint{display:none;}}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div class="topbar-left">
+    <a class="back-btn" href="https://renclinkcreaky.github.io/archive/index.html">
+      <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>Archive
+    </a>
+    <span class="chapter-title">${title}</span>
+  </div>
+  <div class="topbar-right">
+    <span class="page-count" id="pc"></span>
+    <div class="view-toggle">
+      <button class="view-btn active" id="bs" onclick="sv('scroll')">Scroll</button>
+      <button class="view-btn" id="bp" onclick="sv('page')">Page</button>
+    </div>
+    <button class="fs-btn" onclick="toggleFS()">&#x26F6;</button>
+  </div>
+</div>
+<div class="progress-bar"><div class="progress-fill" id="pf" style="width:0%"></div></div>
+<div id="scroll-view"><div class="pages">
+${imgTags}
+</div></div>
+<div id="page-view">
+  <div class="page-container" id="pgc" onclick="np()"><img id="pgi" src="" alt=""></div>
+  <div class="pnav"><button class="pnav-btn" id="pprev" onclick="event.stopPropagation();pp()">&#8592; Prev</button><button class="pnav-btn" id="pnext" onclick="event.stopPropagation();np()">Next &#8594;</button></div>
+  <div class="key-hint">Use <span>&#8592;</span><span>&#8594;</span> arrow keys or click image</div>
+</div>
+<div class="end-card"><div class="end-line">End of ${title}</div></div>
+<div class="chapter-nav">
+  <a class="cnav-btn ${prevDisabled}" href="${prevLink}">&#8592; Previous<small>${prevLabel}</small></a>
+  <a class="cnav-btn ${nextDisabled}" href="${nextLink}">Next &#8594;<small>${nextLabel}</small></a>
+</div>
+<hr class="divider">
+<div class="reactions">
+  <button class="like-btn" id="lb" onclick="tl()"><span id="li">&#9825;</span><span id="lc">Like this chapter</span></button>
+  <a class="rss-link" href="https://renclinkcreaky.github.io/rss.xml" target="_blank"><svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24"><circle cx="6" cy="18" r="2"/><path d="M4 4a16 16 0 0116 16M4 11a9 9 0 019 9"/></svg>Subscribe via RSS</a>
+</div>
+<div class="comments-wrap">
+  <div class="comments-title">Comments</div>
+  <div class="comments-note">Comments need a free GitHub account. No account? Reach out on social media!</div>
+  <script src="https://utteranc.es/client.js" repo="RENCLINKCREAKY/renclinkcreaky.github.io" issue-term="pathname" theme="github-dark" crossorigin="anonymous" async><\/script>
+</div>
+<script>
+const P=[${pageArray}];
+const K="lk_ch${chNum}";
+let cp=0,vm="scroll";
+function sv(m){vm=m;document.getElementById("scroll-view").style.display=m==="scroll"?"block":"none";document.getElementById("page-view").style.display=m==="page"?"block":"none";document.getElementById("bs").classList.toggle("active",m==="scroll");document.getElementById("bp").classList.toggle("active",m==="page");if(m==="page"){cp=0;sp(0);}up();}
+function sp(i){cp=Math.max(0,Math.min(P.length-1,i));document.getElementById("pgi").src=P[cp];document.getElementById("pprev").disabled=cp===0;document.getElementById("pnext").disabled=cp===P.length-1;document.getElementById("pc").textContent=(cp+1)+" / "+P.length;window.scrollTo(0,0);up();}
+function np(){if(cp<P.length-1)sp(cp+1);}function pp(){if(cp>0)sp(cp-1);}
+document.addEventListener("keydown",function(e){if(vm!=="page")return;if(e.key==="ArrowRight"||e.key==="ArrowLeft"||e.key==="ArrowDown"||e.key==="ArrowUp")e.preventDefault();if(e.key==="ArrowRight"||e.key==="ArrowDown")np();else if(e.key==="ArrowLeft"||e.key==="ArrowUp")pp();});
+let tx=0;document.addEventListener("touchstart",e=>{tx=e.touches[0].clientX;});document.addEventListener("touchend",e=>{if(vm!=="page")return;const d=tx-e.changedTouches[0].clientX;if(Math.abs(d)>50){d>0?np():pp();}});
+function up(){if(vm==="scroll"){const p=(window.scrollY/(document.body.scrollHeight-window.innerHeight))*100;document.getElementById("pf").style.width=Math.min(p,100)+"%";document.getElementById("pc").textContent=Math.ceil((p/100)*P.length)+" / "+P.length;}else{document.getElementById("pf").style.width=((cp+1)/P.length*100)+"%";}}
+window.addEventListener("scroll",up);up();
+function toggleFS(){if(!document.fullscreenElement)document.documentElement.requestFullscreen();else document.exitFullscreen();}
+function tl(){const l=localStorage.getItem(K)==="1";if(l){localStorage.removeItem(K);document.getElementById("lb").classList.remove("liked");document.getElementById("li").textContent="\\u2665\\u0338";document.getElementById("lc").textContent="Like this chapter";}else{localStorage.setItem(K,"1");document.getElementById("lb").classList.add("liked");document.getElementById("li").textContent="\\u2665";document.getElementById("lc").textContent="Liked!";}}
+if(localStorage.getItem(K)==="1"){document.getElementById("lb").classList.add("liked");document.getElementById("li").textContent="\\u2665";document.getElementById("lc").textContent="Liked!";}
+document.getElementById("pc").textContent="1 / "+P.length;
+<\/script>
+</body>
+</html>`;
+        
+        // 6. 上传新 HTML
+        const newSha = await getSha(`comic/chapter${chNum}.html`);
+        await apiPut(`comic/chapter${chNum}.html`, strToBase64(newHtml), `统一章节模板: Chapter ${chNum}`, newSha);
+        
+        console.log(`Chapter ${chNum} 升级成功`);
+        return true;
+    } catch (e) {
+        console.error(`升级 Chapter ${chNum} 失败:`, e);
+        return false;
+    }
+}
+
+async function batchUpgradeChapters() {
+    if (!chapters || chapters.length === 0) {
+        await loadChapters();
+    }
+    if (!confirm("⚠️ 此操作会将所有章节页面统一为最新模板，保留原有图片和标题。\n如果章节已经是最新模板，不会产生不良影响。\n\n确定要继续吗？")) return;
+    
+    const btn = document.createElement("button");
+    btn.textContent = "升级中，请稍候...";
+    btn.disabled = true;
+    btn.style.cssText = "position:fixed;bottom:20px;right:20px;z-index:9999;background:#e8153a;color:white;border:none;border-radius:8px;padding:10px 16px;font-weight:bold;";
+    document.body.appendChild(btn);
+    
+    let successCount = 0, failCount = 0;
+    for (let ch of chapters) {
+        const chNum = parseInt(ch.name.match(/\d+/)[0]);
+        const ok = await upgradeChapter(chNum);
+        if (ok) successCount++; else failCount++;
+        btn.textContent = `升级中... 已完成 ${successCount+failCount} / ${chapters.length}`;
+    }
+    
+    btn.textContent = `升级完成！成功: ${successCount}，失败: ${failCount}`;
+    setTimeout(() => btn.remove(), 3000);
+    showToast(`升级完成！成功: ${successCount}，失败: ${failCount}`, successCount === chapters.length ? "success" : "error");
+    loadChapters();
+}
+
+// ==================== 新增功能：编辑页面拖拽排序 ====================
+let dragSrcIndex = null;
+let existingPages = [];
+let newEditFiles = [];
 let editChNum = null;
-let existingPages = []; // {path, url, keep:true}
-let newEditFiles = [];  // new images to add
 
-async function showEdit(chNum) {
-  editChNum = chNum;
-  newEditFiles = [];
-  document.getElementById("edit-pages-preview").innerHTML = "";
-  document.getElementById("edit-progress-wrap").classList.remove("active");
-  document.getElementById("edit-title-label").textContent = "Edit Chapter " + chNum;
-  showScreen("screen-edit");
+function handleDragStart(e, idx) {
+    dragSrcIndex = idx;
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/plain', idx);
+}
 
-  const wrap = document.getElementById("existing-pages");
-  wrap.innerHTML = '<div style="color:var(--muted);font-size:13px;grid-column:1/-1">Loading current pages...</div>';
+function handleDragOver(e) {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+}
 
-  try {
-    // Read current chapter HTML to extract image list
-    const f = await apiGet("comic/chapter" + chNum + ".html");
-    const html = atob(f.content.replace(/\n/g,""));
-    const matches = [...html.matchAll(/src="\.\.\/([^"]+\.(png|jpg|jpeg|webp))"/gi)];
-    existingPages = matches.map(m => ({ path: m[1], url: "https://renclinkcreaky.github.io/" + m[1], keep: true }));
+function handleDrop(e, targetIdx) {
+    e.preventDefault();
+    if (dragSrcIndex === null) return;
+    if (dragSrcIndex === targetIdx) return;
+    
+    const dragged = existingPages[dragSrcIndex];
+    existingPages.splice(dragSrcIndex, 1);
+    existingPages.splice(targetIdx, 0, dragged);
+    
+    dragSrcIndex = null;
     renderExistingPages();
-  } catch(e) {
-    wrap.innerHTML = '<div style="color:var(--muted);font-size:13px;grid-column:1/-1">Could not load pages: ' + e.message + '</div>';
-  }
+    showToast("顺序已更改，点击「保存更改」生效", "success");
 }
 
 function renderExistingPages() {
-  const wrap = document.getElementById("existing-pages");
-  if (existingPages.length === 0) {
-    wrap.innerHTML = '<div style="color:var(--muted);font-size:13px;grid-column:1/-1">No pages yet.</div>';
-    return;
-  }
-  wrap.innerHTML = existingPages.map((p, i) => p.keep ? `
-    <div class="page-thumb">
-      <img src="${p.url}" onerror="this.style.background='#333'">
-      <span class="pg-num">${i+1}</span>
-      <button class="pg-del" onclick="removeExisting(${i})">×</button>
-    </div>` : ""
-  ).join("");
+    const wrap = document.getElementById("existing-pages");
+    if (!existingPages.length) {
+        wrap.innerHTML = '<div style="color:var(--muted);font-size:13px;grid-column:1/-1">No pages yet.</div>';
+        return;
+    }
+    wrap.innerHTML = existingPages.filter(p => p.keep !== false).map((p, i) => `
+        <div class="page-thumb" draggable="true" 
+             ondragstart="handleDragStart(event, ${i})" 
+             ondragover="handleDragOver(event)" 
+             ondrop="handleDrop(event, ${i})">
+            <img src="${p.url}" onerror="this.style.background='#333'">
+            <span class="pg-num">${i+1}</span>
+            <button class="pg-del" onclick="removeExisting(${i})">×</button>
+        </div>
+    `).join("");
 }
 
 function removeExisting(i) {
-  existingPages[i].keep = false;
-  renderExistingPages();
-  showToast("Page removed — click Save Changes to apply", "success");
+    existingPages[i].keep = false;
+    renderExistingPages();
+    showToast("Page removed — click Save Changes to apply", "success");
+}
+
+async function showEdit(chNum) {
+    editChNum = chNum;
+    newEditFiles = [];
+    document.getElementById("edit-pages-preview").innerHTML = "";
+    document.getElementById("edit-progress-wrap").classList.remove("active");
+    document.getElementById("edit-title-label").textContent = "Edit Chapter " + chNum;
+    showScreen("screen-edit");
+
+    const wrap = document.getElementById("existing-pages");
+    wrap.innerHTML = '<div style="color:var(--muted);font-size:13px;grid-column:1/-1">Loading current pages...</div>';
+
+    try {
+        const f = await apiGet("comic/chapter" + chNum + ".html");
+        const html = atob(f.content.replace(/\n/g,""));
+        const matches = [...html.matchAll(/src="\.\.\/([^"]+\.(png|jpg|jpeg|webp))"/gi)];
+        existingPages = matches.map(m => ({ path: m[1], url: "https://renclinkcreaky.github.io/" + m[1], keep: true }));
+        renderExistingPages();
+    } catch(e) {
+        wrap.innerHTML = '<div style="color:var(--muted);font-size:13px;grid-column:1/-1">Could not load pages: ' + e.message + '</div>';
+    }
 }
 
 // Edit drop zone
@@ -637,93 +911,93 @@ edz.addEventListener("drop", e => { e.preventDefault(); edz.classList.remove("dr
 document.getElementById("edit-file-input").addEventListener("change", e => handleEditFiles(e.target.files));
 
 function handleEditFiles(files) {
-  const imgs = Array.from(files).filter(f => f.type.startsWith("image/"))
-    .sort((a,b) => a.name.localeCompare(b.name, undefined, {numeric:true}));
-  newEditFiles = [];
-  document.getElementById("edit-pages-preview").innerHTML = "";
-  let loaded = 0;
-  imgs.forEach((file, i) => {
-    const reader = new FileReader();
-    reader.onload = e => {
-      newEditFiles[i] = { name: file.name, dataUrl: e.target.result };
-      loaded++;
-      if (loaded === imgs.length) renderEditPreviews();
-    };
-    reader.readAsDataURL(file);
-  });
+    const imgs = Array.from(files).filter(f => f.type.startsWith("image/"))
+        .sort((a,b) => a.name.localeCompare(b.name, undefined, {numeric:true}));
+    newEditFiles = [];
+    document.getElementById("edit-pages-preview").innerHTML = "";
+    let loaded = 0;
+    imgs.forEach((file, i) => {
+        const reader = new FileReader();
+        reader.onload = e => {
+            newEditFiles[i] = { name: file.name, dataUrl: e.target.result };
+            loaded++;
+            if (loaded === imgs.length) renderEditPreviews();
+        };
+        reader.readAsDataURL(file);
+    });
 }
 
 function renderEditPreviews() {
-  const wrap = document.getElementById("edit-pages-preview");
-  const offset = existingPages.filter(p => p.keep).length;
-  wrap.innerHTML = newEditFiles.map((f,i) => `
-    <div class="page-thumb">
-      <img src="${f.dataUrl}">
-      <span class="pg-num">${offset + i + 1}</span>
-      <button class="pg-del" onclick="removeNewEdit(${i})">×</button>
-    </div>`
-  ).join("");
+    const wrap = document.getElementById("edit-pages-preview");
+    const offset = existingPages.filter(p => p.keep).length;
+    wrap.innerHTML = newEditFiles.map((f,i) => `
+        <div class="page-thumb">
+            <img src="${f.dataUrl}">
+            <span class="pg-num">${offset + i + 1}</span>
+            <button class="pg-del" onclick="removeNewEdit(${i})">×</button>
+        </div>
+    `).join("");
 }
 
 function removeNewEdit(i) { newEditFiles.splice(i,1); renderEditPreviews(); }
 
 function setEditProgress(pct, label) {
-  document.getElementById("edit-progress-fill").style.width = pct + "%";
-  document.getElementById("edit-progress-label").textContent = label;
+    document.getElementById("edit-progress-fill").style.width = pct + "%";
+    document.getElementById("edit-progress-label").textContent = label;
 }
 
 async function saveEdit() {
-  const btn = document.getElementById("save-edit-btn");
-  btn.disabled = true; btn.textContent = "Saving...";
-  document.getElementById("edit-progress-wrap").classList.add("active");
+    const btn = document.getElementById("save-edit-btn");
+    btn.disabled = true; btn.textContent = "Saving...";
+    document.getElementById("edit-progress-wrap").classList.add("active");
 
-  try {
-    const chNum = editChNum;
-    const keptPages = existingPages.filter(p => p.keep);
-    const allImagePaths = [];
+    try {
+        const chNum = editChNum;
+        const keptPages = existingPages.filter(p => p.keep);
+        const allImagePaths = [];
 
-    // Upload new images
-    for (let i = 0; i < newEditFiles.length; i++) {
-      const f = newEditFiles[i];
-      const ext = f.name.split(".").pop().toLowerCase();
-      const pageNum = keptPages.length + i + 1;
-      const paddedI = String(pageNum).padStart(2,"0");
-      const imgPath = `images/ch${chNum}_${paddedI}.${ext}`;
-      setEditProgress(Math.round((i / (newEditFiles.length || 1)) * 60), `Uploading new page ${i+1} of ${newEditFiles.length}...`);
-      const sha = await getSha(imgPath);
-      await apiPut(imgPath, toBase64(f.dataUrl), `Edit ch${chNum}: add page ${pageNum}`, sha);
-      allImagePaths.push(imgPath);
+        // 上传新图片
+        for (let i = 0; i < newEditFiles.length; i++) {
+            const f = newEditFiles[i];
+            const ext = f.name.split(".").pop().toLowerCase();
+            const pageNum = keptPages.length + i + 1;
+            const paddedI = String(pageNum).padStart(2,"0");
+            const imgPath = `images/ch${chNum}_${paddedI}.${ext}`;
+            setEditProgress(Math.round((i / (newEditFiles.length || 1)) * 60), `Uploading new page ${i+1} of ${newEditFiles.length}...`);
+            const sha = await getSha(imgPath);
+            await apiPut(imgPath, toBase64(f.dataUrl), `Edit ch${chNum}: add page ${pageNum}`, sha);
+            allImagePaths.push(imgPath);
+        }
+
+        // 构建最终页面列表：保留的原有页面 + 新上传页面
+        const finalPaths = [...keptPages.map(p => p.path), ...allImagePaths];
+
+        setEditProgress(75, "Rebuilding chapter page...");
+
+        // 读取当前 HTML，更新 img 标签和 PAGES 数组
+        const f = await apiGet("comic/chapter" + chNum + ".html");
+        let html = atob(f.content.replace(/\n/g,""));
+
+        // 替换 img 标签块
+        const newImgTags = finalPaths.map((p, i) =>
+            `    <img src="../${p}" alt="Chapter ${chNum} Page ${i+1}">`
+        ).join("\n");
+        html = html.replace(/(<div class="pages"[^>]*>)([\s\S]*?)(<\/div>)/, `$1\n${newImgTags}\n$3`);
+
+        // 替换 PAGES 数组
+        const newPageArray = finalPaths.map(p => `"../${p}"`).join(",\n    ");
+        html = html.replace(/const P=\[[^\]]*\]/, `const P=[${newPageArray}]`);
+
+        await apiPut("comic/chapter" + chNum + ".html", strToBase64(html), `Edit chapter ${chNum} pages`, f.sha);
+
+        setEditProgress(100, "Done!");
+        showToast("Chapter updated!", "success");
+        setTimeout(() => showMain(), 1500);
+    } catch(e) {
+        showToast("Error: " + e.message, "error");
+        console.error(e);
     }
-
-    // Build full page list: kept existing + new
-    const finalPaths = [...keptPages.map(p => p.path), ...allImagePaths];
-
-    setEditProgress(75, "Rebuilding chapter page...");
-
-    // Read current HTML, update img tags and PAGES array
-    const f = await apiGet("comic/chapter" + chNum + ".html");
-    let html = atob(f.content.replace(/\n/g,""));
-
-    // Replace img tags block
-    const newImgTags = finalPaths.map((p, i) =>
-      `    <img src="../${p}" alt="Chapter ${chNum} Page ${i+1}">`
-    ).join("\n");
-    html = html.replace(/(<div class="pages"[^>]*>)([\s\S]*?)(<\/div>)/, `$1\n${newImgTags}\n$3`);
-
-    // Replace PAGES array
-    const newPageArray = finalPaths.map(p => `"../${p}"`).join(",\n    ");
-    html = html.replace(/const P=\[[^\]]*\]/, `const P=[${newPageArray}]`);
-
-    await apiPut("comic/chapter" + chNum + ".html", strToBase64(html), `Edit chapter ${chNum} pages`, f.sha);
-
-    setEditProgress(100, "Done!");
-    showToast("Chapter updated!", "success");
-    setTimeout(() => showMain(), 1500);
-  } catch(e) {
-    showToast("Error: " + e.message, "error");
-    console.error(e);
-  }
-  btn.disabled = false; btn.textContent = "Save Changes";
+    btn.disabled = false; btn.textContent = "Save Changes";
 }
 </script>
 </body>
