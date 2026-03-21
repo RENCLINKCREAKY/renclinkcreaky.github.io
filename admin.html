@@ -101,6 +101,16 @@ nav { background:#000; border-bottom:2px solid var(--accent); height:52px; displ
 /* ── Token reset ── */
 .reset-link { font-size:12px; color:var(--muted); cursor:pointer; text-decoration:underline; }
 .reset-link:hover { color:var(--text); }
+
+/* ── Edit screen ── */
+.ch-row-actions { display:flex; gap:8px; align-items:center; }
+.ch-edit-btn { font-size:12px; color:var(--muted); background:var(--surface2); border:1px solid var(--border); border-radius:5px; padding:4px 10px; cursor:pointer; transition:all .2s; }
+.ch-edit-btn:hover { color:var(--text); border-color:var(--muted); }
+.existing-pages { display:grid; grid-template-columns:repeat(auto-fill,minmax(90px,1fr)); gap:8px; margin-bottom:16px; }
+.edit-info { font-size:13px; color:var(--muted); background:var(--surface); border-radius:8px; padding:12px 14px; margin-bottom:16px; line-height:1.6; }
+.edit-info b { color:var(--text); }
+.divider-label { font-size:11px; color:var(--muted); letter-spacing:2px; text-transform:uppercase; text-align:center; margin:16px 0; display:flex; align-items:center; gap:10px; }
+.divider-label::before,.divider-label::after { content:''; flex:1; height:1px; background:var(--border); }
 </style>
 </head>
 <body>
@@ -197,6 +207,38 @@ nav { background:#000; border-bottom:2px solid var(--accent); height:52px; displ
 
 <div class="toast" id="toast"></div>
 
+<!-- ===================== EDIT SCREEN ===================== -->
+<div class="screen" id="screen-edit">
+  <div class="section-title" id="edit-title-label">Edit Chapter</div>
+
+  <div class="edit-info">
+    <b>Current pages</b> — click × to remove a page. New pages you add will be appended at the end.
+  </div>
+
+  <div class="existing-pages" id="existing-pages"></div>
+
+  <div class="divider-label">Add new pages</div>
+
+  <div class="drop-zone" id="edit-drop-zone" onclick="document.getElementById('edit-file-input').click()">
+    <div class="drop-icon">🖼</div>
+    <div class="drop-title">Drag & drop new pages here</div>
+    <div class="drop-sub">or <span>browse files</span> — they'll be added after existing pages</div>
+  </div>
+  <input type="file" id="edit-file-input" multiple accept="image/*">
+
+  <div class="pages-preview" id="edit-pages-preview"></div>
+
+  <div class="progress-wrap" id="edit-progress-wrap">
+    <div class="progress-label" id="edit-progress-label">Saving...</div>
+    <div class="progress-bar"><div class="progress-fill" id="edit-progress-fill"></div></div>
+  </div>
+
+  <div class="btn-row-2">
+    <button class="btn-back" onclick="showMain()">← Back</button>
+    <button class="btn-primary" id="save-edit-btn" onclick="saveEdit()" style="margin-top:0;flex:1">Save Changes</button>
+  </div>
+</div>
+
 <script>
 const REPO = "RENCLINKCREAKY/renclinkcreaky.github.io";
 const API  = "https://api.github.com/repos/" + REPO + "/contents/";
@@ -275,7 +317,10 @@ async function loadChapters() {
           <span class="ch-num-badge">Ch.${num}</span>
           <span class="ch-row-title">Chapter ${num}</span>
         </div>
-        <a class="ch-view-btn" href="https://renclinkcreaky.github.io/comic/${ch.name}" target="_blank">View →</a>
+        <div class="ch-row-actions">
+          <button class="ch-edit-btn" onclick="showEdit(${num})">Edit ✎</button>
+          <a class="ch-view-btn" href="https://renclinkcreaky.github.io/comic/${ch.name}" target="_blank">View →</a>
+        </div>
       </div>`;
     }).join("");
   } catch(e) {
@@ -534,6 +579,152 @@ async function updateRSS(chNum, title) {
 // ── Init ──
 if (getToken()) { showMain(); document.getElementById("nav-status").textContent = "Connected"; }
 else showScreen("screen-setup");
+
+// ── Edit chapter ──
+let editChNum = null;
+let existingPages = []; // {path, url, keep:true}
+let newEditFiles = [];  // new images to add
+
+async function showEdit(chNum) {
+  editChNum = chNum;
+  newEditFiles = [];
+  document.getElementById("edit-pages-preview").innerHTML = "";
+  document.getElementById("edit-progress-wrap").classList.remove("active");
+  document.getElementById("edit-title-label").textContent = "Edit Chapter " + chNum;
+  showScreen("screen-edit");
+
+  const wrap = document.getElementById("existing-pages");
+  wrap.innerHTML = '<div style="color:var(--muted);font-size:13px;grid-column:1/-1">Loading current pages...</div>';
+
+  try {
+    // Read current chapter HTML to extract image list
+    const f = await apiGet("comic/chapter" + chNum + ".html");
+    const html = atob(f.content.replace(/\n/g,""));
+    const matches = [...html.matchAll(/src="\.\.\/([^"]+\.(png|jpg|jpeg|webp))"/gi)];
+    existingPages = matches.map(m => ({ path: m[1], url: "https://renclinkcreaky.github.io/" + m[1], keep: true }));
+    renderExistingPages();
+  } catch(e) {
+    wrap.innerHTML = '<div style="color:var(--muted);font-size:13px;grid-column:1/-1">Could not load pages: ' + e.message + '</div>';
+  }
+}
+
+function renderExistingPages() {
+  const wrap = document.getElementById("existing-pages");
+  if (existingPages.length === 0) {
+    wrap.innerHTML = '<div style="color:var(--muted);font-size:13px;grid-column:1/-1">No pages yet.</div>';
+    return;
+  }
+  wrap.innerHTML = existingPages.map((p, i) => p.keep ? `
+    <div class="page-thumb">
+      <img src="${p.url}" onerror="this.style.background='#333'">
+      <span class="pg-num">${i+1}</span>
+      <button class="pg-del" onclick="removeExisting(${i})">×</button>
+    </div>` : ""
+  ).join("");
+}
+
+function removeExisting(i) {
+  existingPages[i].keep = false;
+  renderExistingPages();
+  showToast("Page removed — click Save Changes to apply", "success");
+}
+
+// Edit drop zone
+const edz = document.getElementById("edit-drop-zone");
+edz.addEventListener("dragover", e => { e.preventDefault(); edz.classList.add("drag-over"); });
+edz.addEventListener("dragleave", () => edz.classList.remove("drag-over"));
+edz.addEventListener("drop", e => { e.preventDefault(); edz.classList.remove("drag-over"); handleEditFiles(e.dataTransfer.files); });
+document.getElementById("edit-file-input").addEventListener("change", e => handleEditFiles(e.target.files));
+
+function handleEditFiles(files) {
+  const imgs = Array.from(files).filter(f => f.type.startsWith("image/"))
+    .sort((a,b) => a.name.localeCompare(b.name, undefined, {numeric:true}));
+  newEditFiles = [];
+  document.getElementById("edit-pages-preview").innerHTML = "";
+  let loaded = 0;
+  imgs.forEach((file, i) => {
+    const reader = new FileReader();
+    reader.onload = e => {
+      newEditFiles[i] = { name: file.name, dataUrl: e.target.result };
+      loaded++;
+      if (loaded === imgs.length) renderEditPreviews();
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+function renderEditPreviews() {
+  const wrap = document.getElementById("edit-pages-preview");
+  const offset = existingPages.filter(p => p.keep).length;
+  wrap.innerHTML = newEditFiles.map((f,i) => `
+    <div class="page-thumb">
+      <img src="${f.dataUrl}">
+      <span class="pg-num">${offset + i + 1}</span>
+      <button class="pg-del" onclick="removeNewEdit(${i})">×</button>
+    </div>`
+  ).join("");
+}
+
+function removeNewEdit(i) { newEditFiles.splice(i,1); renderEditPreviews(); }
+
+function setEditProgress(pct, label) {
+  document.getElementById("edit-progress-fill").style.width = pct + "%";
+  document.getElementById("edit-progress-label").textContent = label;
+}
+
+async function saveEdit() {
+  const btn = document.getElementById("save-edit-btn");
+  btn.disabled = true; btn.textContent = "Saving...";
+  document.getElementById("edit-progress-wrap").classList.add("active");
+
+  try {
+    const chNum = editChNum;
+    const keptPages = existingPages.filter(p => p.keep);
+    const allImagePaths = [];
+
+    // Upload new images
+    for (let i = 0; i < newEditFiles.length; i++) {
+      const f = newEditFiles[i];
+      const ext = f.name.split(".").pop().toLowerCase();
+      const pageNum = keptPages.length + i + 1;
+      const paddedI = String(pageNum).padStart(2,"0");
+      const imgPath = `images/ch${chNum}_${paddedI}.${ext}`;
+      setEditProgress(Math.round((i / (newEditFiles.length || 1)) * 60), `Uploading new page ${i+1} of ${newEditFiles.length}...`);
+      const sha = await getSha(imgPath);
+      await apiPut(imgPath, toBase64(f.dataUrl), `Edit ch${chNum}: add page ${pageNum}`, sha);
+      allImagePaths.push(imgPath);
+    }
+
+    // Build full page list: kept existing + new
+    const finalPaths = [...keptPages.map(p => p.path), ...allImagePaths];
+
+    setEditProgress(75, "Rebuilding chapter page...");
+
+    // Read current HTML, update img tags and PAGES array
+    const f = await apiGet("comic/chapter" + chNum + ".html");
+    let html = atob(f.content.replace(/\n/g,""));
+
+    // Replace img tags block
+    const newImgTags = finalPaths.map((p, i) =>
+      `    <img src="../${p}" alt="Chapter ${chNum} Page ${i+1}">`
+    ).join("\n");
+    html = html.replace(/(<div class="pages"[^>]*>)([\s\S]*?)(<\/div>)/, `$1\n${newImgTags}\n$3`);
+
+    // Replace PAGES array
+    const newPageArray = finalPaths.map(p => `"../${p}"`).join(",\n    ");
+    html = html.replace(/const P=\[[^\]]*\]/, `const P=[${newPageArray}]`);
+
+    await apiPut("comic/chapter" + chNum + ".html", strToBase64(html), `Edit chapter ${chNum} pages`, f.sha);
+
+    setEditProgress(100, "Done!");
+    showToast("Chapter updated!", "success");
+    setTimeout(() => showMain(), 1500);
+  } catch(e) {
+    showToast("Error: " + e.message, "error");
+    console.error(e);
+  }
+  btn.disabled = false; btn.textContent = "Save Changes";
+}
 </script>
 </body>
 </html>
