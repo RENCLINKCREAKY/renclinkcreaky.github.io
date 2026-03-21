@@ -209,51 +209,61 @@ nav { background:#000; border-bottom:2px solid var(--accent); height:52px; displ
   </div>
 </div>
 
-<!-- ===================== SITE MANAGEMENT SCREEN ===================== -->
+<!-- ===================== SITE MANAGEMENT SCREEN (可视化版) ===================== -->
 <div class="screen" id="screen-site">
   <div class="section-title">站点内容管理</div>
   
   <!-- 主页设置 -->
   <div style="background:var(--surface); border-radius:12px; padding:20px; margin-bottom:20px;">
     <div style="font-weight:bold; margin-bottom:12px;">🏠 主页设置</div>
-    <label class="field-label">英雄图片 URL</label>
+    <label class="field-label">英雄图片</label>
+    <div class="drop-zone" style="padding:20px;" id="hero-drop" onclick="document.getElementById('hero-file').click()">
+      <div class="drop-icon">🖼️</div>
+      <div class="drop-sub">点击或拖拽上传英雄图片</div>
+    </div>
+    <input type="file" id="hero-file" accept="image/*" style="display:none;">
+    <label class="field-label">英雄图片 URL（也可直接填）</label>
     <input class="field-input" id="hero-image" placeholder="images/hero.png">
+    
     <label class="field-label">最新章节链接</label>
     <input class="field-input" id="latest-link" placeholder="comic/chapter2.html">
-    <label class="field-label">最新章节缩略图 URL</label>
+    
+    <label class="field-label">最新章节缩略图</label>
+    <div class="drop-zone" style="padding:20px;" id="thumb-drop" onclick="document.getElementById('thumb-file').click()">
+      <div class="drop-icon">🖼️</div>
+      <div class="drop-sub">点击或拖拽上传缩略图</div>
+    </div>
+    <input type="file" id="thumb-file" accept="image/*" style="display:none;">
     <input class="field-input" id="latest-thumb" placeholder="images/ch2_01.png">
+    
     <label class="field-label">最新章节显示文字</label>
     <input class="field-input" id="latest-text" placeholder="Chapter 2">
   </div>
   
   <!-- 角色设置 -->
   <div style="background:var(--surface); border-radius:12px; padding:20px; margin-bottom:20px;">
-    <div style="font-weight:bold; margin-bottom:12px;">👥 角色列表 (JSON 格式)</div>
-    <textarea id="characters-json" rows="6" class="field-input" style="font-family:monospace;">[
-  {"name":"Mitzi","image":"images/mitzi.png","desc":"主角，开朗活泼"},
-  {"name":"Iris","image":"images/iris.png","desc":"神秘的支持者"},
-  {"name":"Walt","image":"images/walt.png","desc":"亦敌亦友"}
-]</textarea>
-    <div class="field-label" style="margin-top:8px;">💡 提示：修改后点击保存，会自动更新 characters/index.html</div>
+    <div style="font-weight:bold; margin-bottom:12px;">👥 角色列表</div>
+    <div id="characters-list"></div>
+    <button class="btn-new" style="margin-top:12px;" onclick="addCharacter()">+ 添加角色</button>
   </div>
   
   <!-- 画廊设置 -->
   <div style="background:var(--surface); border-radius:12px; padding:20px; margin-bottom:20px;">
-    <div style="font-weight:bold; margin-bottom:12px;">🖼️ 画廊图片列表 (JSON 格式)</div>
-    <textarea id="gallery-json" rows="6" class="field-input" style="font-family:monospace;">[
-  {"src":"images/gallery1.jpg","caption":"封面插画"},
-  {"src":"images/gallery2.jpg","caption":"角色草稿"}
-]</textarea>
-    <div class="field-label" style="margin-top:8px;">💡 提示：修改后点击保存，会自动更新 gallery/index.html</div>
+    <div style="font-weight:bold; margin-bottom:12px;">🖼️ 画廊图片列表</div>
+    <div id="gallery-list"></div>
+    <button class="btn-new" style="margin-top:12px;" onclick="addGalleryItem()">+ 添加图片</button>
   </div>
   
   <button class="btn-primary" onclick="saveSiteContent()" style="margin-top:10px;">💾 保存所有站点内容</button>
   <button class="btn-back" onclick="showMain()" style="margin-top:12px;">← 返回章节管理</button>
 </div>
 
-<!-- ===================== EDIT SCREEN ===================== -->
+<!-- ===================== EDIT SCREEN (增强：可改标题) ===================== -->
 <div class="screen" id="screen-edit">
   <div class="section-title" id="edit-title-label">Edit Chapter</div>
+
+  <label class="field-label">Chapter Title</label>
+  <input class="field-input" id="edit-chapter-title" placeholder="Chapter title">
 
   <div class="edit-info">
     <b>Current pages</b> — drag to reorder, click × to remove a page. New pages you add will be appended at the end.
@@ -292,6 +302,10 @@ const API  = "https://api.github.com/repos/" + REPO + "/contents/";
 let uploadedFiles = []; // {name, dataUrl, file}
 let chapters = [];      // fetched from GitHub
 
+// 角色和画廊数据
+let characters = [];
+let galleryItems = [];
+
 // ── Helpers ──
 function getToken() { return localStorage.getItem("rc_token") || ""; }
 function showToast(msg, type) {
@@ -326,6 +340,18 @@ async function getSha(path) {
 }
 function toBase64(dataUrl) { return dataUrl.split(",")[1]; }
 function strToBase64(str) { return btoa(unescape(encodeURIComponent(str))); }
+
+// 上传图片到仓库并返回路径
+async function uploadImage(file, targetPath) {
+  const reader = new FileReader();
+  const dataUrl = await new Promise((resolve) => {
+    reader.onload = e => resolve(e.target.result);
+    reader.readAsDataURL(file);
+  });
+  const sha = await getSha(targetPath);
+  await apiPut(targetPath, toBase64(dataUrl), `Upload ${targetPath}`, sha);
+  return targetPath;
+}
 
 // ── Token setup ──
 function saveToken() {
@@ -376,7 +402,7 @@ async function loadChapters() {
   }
 }
 
-// ── File handling ──
+// ── File handling for upload ──
 document.getElementById("file-input").addEventListener("change", e => handleFiles(e.target.files));
 const dz = document.getElementById("drop-zone");
 dz.addEventListener("dragover", e => { e.preventDefault(); dz.classList.add("drag-over"); });
@@ -413,7 +439,7 @@ function renderPreviews() {
 
 function removePage(i) { uploadedFiles.splice(i,1); renderPreviews(); }
 
-// ── Publish ──
+// ── Publish (使用新版模板，顶部+底部导航，修复点击翻页) ──
 async function publish() {
   const title = document.getElementById("chapter-title-input").value.trim();
   if (!title) { showToast("Please enter a chapter title", "error"); return; }
@@ -431,6 +457,9 @@ async function publish() {
     const prevLink = chNum > 1 ? `https://renclinkcreaky.github.io/comic/chapter${prevNum}.html` : "#";
     const prevDisabled = chNum === 1 ? "disabled" : "";
     const prevLabel = chNum > 1 ? `Chapter ${prevNum}` : "No previous chapter";
+    const nextLink = "#";
+    const nextDisabled = "disabled";
+    const nextLabel = "Coming soon";
 
     // Upload images
     const imageNames = [];
@@ -535,10 +564,14 @@ ${imgTags}
   <div class="pnav"><button class="pnav-btn" id="pprev" onclick="event.stopPropagation();pp()">&#8592; Prev</button><button class="pnav-btn" id="pnext" onclick="event.stopPropagation();np()">Next &#8594;</button></div>
   <div class="key-hint">Use <span>&#8592;</span><span>&#8594;</span> arrow keys or click image</div>
 </div>
+<div class="chapter-nav">
+  <a class="cnav-btn ${prevDisabled}" href="${prevLink}">&#8592; Previous<small>${prevLabel}</small></a>
+  <a class="cnav-btn ${nextDisabled}" href="${nextLink}">Next &#8594;<small>${nextLabel}</small></a>
+</div>
 <div class="end-card"><div class="end-line">End of ${title}</div></div>
 <div class="chapter-nav">
   <a class="cnav-btn ${prevDisabled}" href="${prevLink}">&#8592; Previous<small>${prevLabel}</small></a>
-  <a class="cnav-btn disabled" href="#" id="next-ch-btn">Next &#8594;<small>Coming soon</small></a>
+  <a class="cnav-btn ${nextDisabled}" href="${nextLink}">Next &#8594;<small>${nextLabel}</small></a>
 </div>
 <hr class="divider">
 <div class="reactions">
@@ -635,13 +668,11 @@ async function deleteChapter(chNum) {
     if (btn) btn.disabled = true;
     
     try {
-        // 1. 获取章节 HTML 中的图片路径列表
         const f = await apiGet(`comic/chapter${chNum}.html`);
         const html = atob(f.content.replace(/\n/g,""));
         const matches = [...html.matchAll(/src="\.\.\/(images\/ch${chNum}_[^"]+)"/gi)];
         const imagePaths = matches.map(m => m[1]);
         
-        // 2. 删除所有图片
         for (let imgPath of imagePaths) {
             const sha = await getSha(imgPath);
             if (sha) {
@@ -653,7 +684,6 @@ async function deleteChapter(chNum) {
             }
         }
         
-        // 3. 删除章节 HTML
         const htmlSha = await getSha(`comic/chapter${chNum}.html`);
         if (htmlSha) {
             await fetch(API + `comic/chapter${chNum}.html`, {
@@ -663,9 +693,8 @@ async function deleteChapter(chNum) {
             });
         }
         
-        // 4. 从 archive 和 RSS 中移除（简单起见，先不做，可后续完善）
         showToast(`Chapter ${chNum} 已删除`, "success");
-        loadChapters();  // 刷新列表
+        loadChapters();
     } catch(e) {
         showToast("删除失败: " + e.message, "error");
         console.error(e);
@@ -674,15 +703,13 @@ async function deleteChapter(chNum) {
     }
 }
 
-// ==================== 新增功能：批量升级章节模板 ====================
+// ==================== 批量升级章节模板 ====================
 async function upgradeChapter(chNum) {
     console.log(`升级 Chapter ${chNum}...`);
     try {
-        // 1. 获取旧章节 HTML
         const oldFile = await apiGet(`comic/chapter${chNum}.html`);
         let oldHtml = atob(oldFile.content.replace(/\n/g, ""));
         
-        // 2. 提取原标题（优先取 .chapter-title 内的文本，其次取 <title>）
         let titleMatch = oldHtml.match(/<span class="chapter-title">(.*?)<\/span>/);
         let title = titleMatch ? titleMatch[1] : `Chapter ${chNum}`;
         if (!titleMatch) {
@@ -690,7 +717,6 @@ async function upgradeChapter(chNum) {
             if (titleMatch) title = titleMatch[1].replace(/ — RENCLINKCREAKY/, '');
         }
         
-        // 3. 提取图片路径列表（相对路径，去掉 "../"）
         const imgMatches = [...oldHtml.matchAll(/src="\.\.\/([^"]+\.(png|jpg|jpeg|webp))"/gi)];
         const imagePaths = imgMatches.map(m => m[1]);
         if (imagePaths.length === 0) {
@@ -698,7 +724,6 @@ async function upgradeChapter(chNum) {
             return false;
         }
         
-        // 4. 获取相邻章节编号
         const allChapters = chapters.map(c => parseInt(c.name.match(/\d+/)[0])).sort((a,b)=>a-b);
         const idx = allChapters.indexOf(chNum);
         const prevNum = idx > 0 ? allChapters[idx-1] : null;
@@ -710,7 +735,6 @@ async function upgradeChapter(chNum) {
         const nextDisabled = !nextNum ? "disabled" : "";
         const nextLabel = nextNum ? `Chapter ${nextNum}` : "Coming soon";
         
-        // 5. 生成新 HTML（基于 publish 函数模板，但动态填充数据）
         const imgTags = imagePaths.map((p, i) => 
             `    <img src="../${p}" alt="${title} Page ${i+1}">`
         ).join("\n");
@@ -800,6 +824,10 @@ ${imgTags}
   <div class="pnav"><button class="pnav-btn" id="pprev" onclick="event.stopPropagation();pp()">&#8592; Prev</button><button class="pnav-btn" id="pnext" onclick="event.stopPropagation();np()">Next &#8594;</button></div>
   <div class="key-hint">Use <span>&#8592;</span><span>&#8594;</span> arrow keys or click image</div>
 </div>
+<div class="chapter-nav">
+  <a class="cnav-btn ${prevDisabled}" href="${prevLink}">&#8592; Previous<small>${prevLabel}</small></a>
+  <a class="cnav-btn ${nextDisabled}" href="${nextLink}">Next &#8594;<small>${nextLabel}</small></a>
+</div>
 <div class="end-card"><div class="end-line">End of ${title}</div></div>
 <div class="chapter-nav">
   <a class="cnav-btn ${prevDisabled}" href="${prevLink}">&#8592; Previous<small>${prevLabel}</small></a>
@@ -834,7 +862,6 @@ document.getElementById("pc").textContent="1 / "+P.length;
 </body>
 </html>`;
         
-        // 6. 上传新 HTML
         const newSha = await getSha(`comic/chapter${chNum}.html`);
         await apiPut(`comic/chapter${chNum}.html`, strToBase64(newHtml), `统一章节模板: Chapter ${chNum}`, newSha);
         
@@ -872,11 +899,12 @@ async function batchUpgradeChapters() {
     loadChapters();
 }
 
-// ==================== 新增功能：编辑页面拖拽排序 ====================
+// ==================== 编辑页面拖拽排序 & 修改标题 ====================
 let dragSrcIndex = null;
 let existingPages = [];
 let newEditFiles = [];
 let editChNum = null;
+let currentEditTitle = "";
 
 function handleDragStart(e, idx) {
     dragSrcIndex = idx;
@@ -935,17 +963,24 @@ async function showEdit(chNum) {
     document.getElementById("edit-title-label").textContent = "Edit Chapter " + chNum;
     showScreen("screen-edit");
 
-    const wrap = document.getElementById("existing-pages");
-    wrap.innerHTML = '<div style="color:var(--muted);font-size:13px;grid-column:1/-1">Loading current pages...</div>';
-
+    // 加载当前章节的标题
     try {
         const f = await apiGet("comic/chapter" + chNum + ".html");
         const html = atob(f.content.replace(/\n/g,""));
+        let titleMatch = html.match(/<span class="chapter-title">(.*?)<\/span>/);
+        if (titleMatch) {
+            currentEditTitle = titleMatch[1];
+            document.getElementById("edit-chapter-title").value = currentEditTitle;
+        } else {
+            currentEditTitle = `Chapter ${chNum}`;
+            document.getElementById("edit-chapter-title").value = currentEditTitle;
+        }
+        
         const matches = [...html.matchAll(/src="\.\.\/([^"]+\.(png|jpg|jpeg|webp))"/gi)];
         existingPages = matches.map(m => ({ path: m[1], url: "https://renclinkcreaky.github.io/" + m[1], keep: true }));
         renderExistingPages();
     } catch(e) {
-        wrap.innerHTML = '<div style="color:var(--muted);font-size:13px;grid-column:1/-1">Could not load pages: ' + e.message + '</div>';
+        document.getElementById("existing-pages").innerHTML = '<div style="color:var(--muted);font-size:13px;">Could not load pages: ' + e.message + '</div>';
     }
 }
 
@@ -999,6 +1034,7 @@ async function saveEdit() {
 
     try {
         const chNum = editChNum;
+        const newTitle = document.getElementById("edit-chapter-title").value.trim();
         const keptPages = existingPages.filter(p => p.keep);
         const allImagePaths = [];
 
@@ -1015,18 +1051,22 @@ async function saveEdit() {
             allImagePaths.push(imgPath);
         }
 
-        // 构建最终页面列表：保留的原有页面 + 新上传页面
         const finalPaths = [...keptPages.map(p => p.path), ...allImagePaths];
 
         setEditProgress(75, "Rebuilding chapter page...");
 
-        // 读取当前 HTML，更新 img 标签和 PAGES 数组
+        // 读取当前 HTML，更新标题、img 标签和 PAGES 数组
         const f = await apiGet("comic/chapter" + chNum + ".html");
         let html = atob(f.content.replace(/\n/g,""));
 
+        // 更新标题
+        html = html.replace(/<span class="chapter-title">.*?<\/span>/, `<span class="chapter-title">${newTitle}</span>`);
+        html = html.replace(/<title>.*?<\/title>/, `<title>${newTitle} — RENCLINKCREAKY</title>`);
+        html = html.replace(/End of .*?<\/div>/, `End of ${newTitle}</div>`);
+
         // 替换 img 标签块
         const newImgTags = finalPaths.map((p, i) =>
-            `    <img src="../${p}" alt="Chapter ${chNum} Page ${i+1}">`
+            `    <img src="../${p}" alt="${newTitle} Page ${i+1}">`
         ).join("\n");
         html = html.replace(/(<div class="pages"[^>]*>)([\s\S]*?)(<\/div>)/, `$1\n${newImgTags}\n$3`);
 
@@ -1046,60 +1086,191 @@ async function saveEdit() {
     btn.disabled = false; btn.textContent = "Save Changes";
 }
 
-// ==================== 站点内容管理 ====================
+// ==================== 可视化站点内容管理 ====================
+function addCharacter() {
+    characters.push({ name: "新角色", image: "images/", desc: "角色描述" });
+    renderCharactersList();
+}
+function removeCharacter(idx) {
+    characters.splice(idx, 1);
+    renderCharactersList();
+}
+function renderCharactersList() {
+    const container = document.getElementById("characters-list");
+    container.innerHTML = "";
+    characters.forEach((c, i) => {
+        const div = document.createElement("div");
+        div.style.background = "var(--surface2)";
+        div.style.padding = "12px";
+        div.style.marginBottom = "12px";
+        div.style.borderRadius = "8px";
+        div.innerHTML = `
+            <input class="field-input" style="margin-bottom:8px;" placeholder="角色名" value="${escapeHtml(c.name)}" onchange="characters[${i}].name=this.value">
+            <div style="display:flex; gap:8px; margin-bottom:8px;">
+                <input class="field-input" style="flex:1;" placeholder="图片路径" value="${escapeHtml(c.image)}" onchange="characters[${i}].image=this.value">
+                <button class="ch-edit-btn" onclick="uploadCharacterImage(${i})">上传图片</button>
+            </div>
+            <textarea class="field-input" rows="2" placeholder="角色描述" onchange="characters[${i}].desc=this.value">${escapeHtml(c.desc)}</textarea>
+            <button class="ch-edit-btn" style="background:#a00;" onclick="removeCharacter(${i})">删除</button>
+        `;
+        container.appendChild(div);
+    });
+}
+async function uploadCharacterImage(idx) {
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = "image/*";
+    input.onchange = async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        const ext = file.name.split('.').pop();
+        const filename = `char_${Date.now()}.${ext}`;
+        const path = `images/${filename}`;
+        const uploadedPath = await uploadImage(file, path);
+        characters[idx].image = uploadedPath;
+        renderCharactersList();
+        showToast("图片上传成功", "success");
+    };
+    input.click();
+}
+
+function addGalleryItem() {
+    galleryItems.push({ src: "images/", caption: "图片说明" });
+    renderGalleryList();
+}
+function removeGalleryItem(idx) {
+    galleryItems.splice(idx, 1);
+    renderGalleryList();
+}
+function renderGalleryList() {
+    const container = document.getElementById("gallery-list");
+    container.innerHTML = "";
+    galleryItems.forEach((item, i) => {
+        const div = document.createElement("div");
+        div.style.background = "var(--surface2)";
+        div.style.padding = "12px";
+        div.style.marginBottom = "12px";
+        div.style.borderRadius = "8px";
+        div.innerHTML = `
+            <div style="display:flex; gap:8px; margin-bottom:8px;">
+                <input class="field-input" style="flex:1;" placeholder="图片路径" value="${escapeHtml(item.src)}" onchange="galleryItems[${i}].src=this.value">
+                <button class="ch-edit-btn" onclick="uploadGalleryImage(${i})">上传图片</button>
+            </div>
+            <input class="field-input" placeholder="图片说明" value="${escapeHtml(item.caption)}" onchange="galleryItems[${i}].caption=this.value">
+            <button class="ch-edit-btn" style="background:#a00;" onclick="removeGalleryItem(${i})">删除</button>
+        `;
+        container.appendChild(div);
+    });
+}
+async function uploadGalleryImage(idx) {
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = "image/*";
+    input.onchange = async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        const ext = file.name.split('.').pop();
+        const filename = `gallery_${Date.now()}.${ext}`;
+        const path = `images/${filename}`;
+        const uploadedPath = await uploadImage(file, path);
+        galleryItems[idx].src = uploadedPath;
+        renderGalleryList();
+        showToast("图片上传成功", "success");
+    };
+    input.click();
+}
+
+function escapeHtml(str) {
+    return str.replace(/[&<>]/g, function(m) {
+        if (m === '&') return '&amp;';
+        if (m === '<') return '&lt;';
+        if (m === '>') return '&gt;';
+        return m;
+    });
+}
+
 async function loadSiteContent() {
-  try {
-    // 读取 index.html
-    const indexRes = await apiGet("index.html");
-    let indexHtml = atob(indexRes.content.replace(/\n/g, ""));
-    
-    // 提取英雄图片
-    let heroMatch = indexHtml.match(/<img src="([^"]+)" alt="Renclinkcreaky Hero Image">/);
-    if (heroMatch) document.getElementById("hero-image").value = heroMatch[1];
-    
-    // 提取最新章节信息
-    let latestLinkMatch = indexHtml.match(/<a id="latest-link" href="([^"]+)">/);
-    if (latestLinkMatch) document.getElementById("latest-link").value = latestLinkMatch[1];
-    
-    let latestThumbMatch = indexHtml.match(/<img id="latest-thumb" src="([^"]+)" alt="Latest Comic">/);
-    if (latestThumbMatch) document.getElementById("latest-thumb").value = latestThumbMatch[1];
-    
-    let latestTextMatch = indexHtml.match(/<span id="latest-text">(.*?)<\/span>/);
-    if (latestTextMatch) document.getElementById("latest-text").value = latestTextMatch[1];
-    
-    // 读取 characters/index.html 并尝试解析角色数据（简单方式：从现有 HTML 结构提取太复杂，直接用预设 JSON）
-    // 这里为了简化，我们保留预设 JSON，用户可以手动修改后保存。你也可以从现有 HTML 解析，但会增加复杂度。
-    // 如果需要从现有页面解析，我可以另外实现，但建议直接在 admin 里编辑 JSON。
-    
-    // 读取 gallery/index.html 同理，这里不自动解析，用户直接修改 JSON。
-    
-  } catch(e) {
-    showToast("读取站点内容失败: " + e.message, "error");
-  }
+    try {
+        // 加载主页信息
+        const indexRes = await apiGet("index.html");
+        let indexHtml = atob(indexRes.content.replace(/\n/g, ""));
+        let heroMatch = indexHtml.match(/<img src="([^"]+)" alt="Renclinkcreaky Hero Image">/);
+        if (heroMatch) document.getElementById("hero-image").value = heroMatch[1];
+        let latestLinkMatch = indexHtml.match(/<a id="latest-link" href="([^"]+)">/);
+        if (latestLinkMatch) document.getElementById("latest-link").value = latestLinkMatch[1];
+        let latestThumbMatch = indexHtml.match(/<img id="latest-thumb" src="([^"]+)" alt="Latest Comic">/);
+        if (latestThumbMatch) document.getElementById("latest-thumb").value = latestThumbMatch[1];
+        let latestTextMatch = indexHtml.match(/<span id="latest-text">(.*?)<\/span>/);
+        if (latestTextMatch) document.getElementById("latest-text").value = latestTextMatch[1];
+        
+        // 尝试加载角色数据（从 characters/index.html 解析）
+        try {
+            const charRes = await apiGet("characters/index.html");
+            let charHtml = atob(charRes.content.replace(/\n/g, ""));
+            const charRegex = /<div class="character-item">[\s\S]*?<img src="([^"]+)"[^>]*>[\s\S]*?<span>([^<]+)<\/span>[\s\S]*?<p[^>]*>([^<]*)<\/p>/g;
+            characters = [];
+            let match;
+            while ((match = charRegex.exec(charHtml)) !== null) {
+                characters.push({
+                    image: match[1],
+                    name: match[2],
+                    desc: match[3]
+                });
+            }
+        } catch(e) { console.log("角色页解析失败，使用默认"); characters = []; }
+        if (characters.length === 0) {
+            characters = [
+                { name: "Mitzi", image: "images/mitzi.png", desc: "主角，开朗活泼" },
+                { name: "Iris", image: "images/iris.png", desc: "神秘的支持者" },
+                { name: "Walt", image: "images/walt.png", desc: "亦敌亦友" }
+            ];
+        }
+        renderCharactersList();
+        
+        // 尝试加载画廊数据
+        try {
+            const galleryRes = await apiGet("gallery/index.html");
+            let galleryHtml = atob(galleryRes.content.replace(/\n/g, ""));
+            const galleryRegex = /<div class="character-item">[\s\S]*?<img src="([^"]+)"[^>]*>[\s\S]*?<span>([^<]+)<\/span>/g;
+            galleryItems = [];
+            let match;
+            while ((match = galleryRegex.exec(galleryHtml)) !== null) {
+                galleryItems.push({
+                    src: match[1],
+                    caption: match[2]
+                });
+            }
+        } catch(e) { console.log("画廊页解析失败，使用默认"); galleryItems = []; }
+        if (galleryItems.length === 0) {
+            galleryItems = [
+                { src: "images/gallery1.jpg", caption: "封面插画" },
+                { src: "images/gallery2.jpg", caption: "角色草稿" }
+            ];
+        }
+        renderGalleryList();
+    } catch(e) {
+        showToast("读取站点内容失败: " + e.message, "error");
+    }
 }
 
 async function saveSiteContent() {
-  try {
-    // 1. 更新 index.html
-    const indexRes = await apiGet("index.html");
-    let indexHtml = atob(indexRes.content.replace(/\n/g, ""));
-    
-    const heroImg = document.getElementById("hero-image").value;
-    const latestLink = document.getElementById("latest-link").value;
-    const latestThumb = document.getElementById("latest-thumb").value;
-    const latestText = document.getElementById("latest-text").value;
-    
-    indexHtml = indexHtml.replace(/<img src="[^"]+" alt="Renclinkcreaky Hero Image">/, `<img src="${heroImg}" alt="Renclinkcreaky Hero Image">`);
-    indexHtml = indexHtml.replace(/<a id="latest-link" href="[^"]+">/, `<a id="latest-link" href="${latestLink}">`);
-    indexHtml = indexHtml.replace(/<img id="latest-thumb" src="[^"]+" alt="Latest Comic">/, `<img id="latest-thumb" src="${latestThumb}" alt="Latest Comic">`);
-    indexHtml = indexHtml.replace(/<span id="latest-text">.*?<\/span>/, `<span id="latest-text">${latestText}</span>`);
-    
-    await apiPut("index.html", strToBase64(indexHtml), "Update homepage content", indexRes.sha);
-    
-    // 2. 更新 characters/index.html（根据 JSON 生成完整页面）
-    let charactersJson = document.getElementById("characters-json").value;
-    let chars = JSON.parse(charactersJson);
-    let charHtml = `<!DOCTYPE html>
+    try {
+        // 1. 更新 index.html
+        const indexRes = await apiGet("index.html");
+        let indexHtml = atob(indexRes.content.replace(/\n/g, ""));
+        const heroImg = document.getElementById("hero-image").value;
+        const latestLink = document.getElementById("latest-link").value;
+        const latestThumb = document.getElementById("latest-thumb").value;
+        const latestText = document.getElementById("latest-text").value;
+        
+        indexHtml = indexHtml.replace(/<img src="[^"]+" alt="Renclinkcreaky Hero Image">/, `<img src="${heroImg}" alt="Renclinkcreaky Hero Image">`);
+        indexHtml = indexHtml.replace(/<a id="latest-link" href="[^"]+">/, `<a id="latest-link" href="${latestLink}">`);
+        indexHtml = indexHtml.replace(/<img id="latest-thumb" src="[^"]+" alt="Latest Comic">/, `<img id="latest-thumb" src="${latestThumb}" alt="Latest Comic">`);
+        indexHtml = indexHtml.replace(/<span id="latest-text">.*?<\/span>/, `<span id="latest-text">${latestText}</span>`);
+        await apiPut("index.html", strToBase64(indexHtml), "Update homepage content", indexRes.sha);
+        
+        // 2. 生成 characters/index.html
+        let charHtml = `<!DOCTYPE html>
 <html lang="en">
 <head><meta charset="UTF-8"><title>Characters — RENCLINKCREAKY</title><link rel="stylesheet" href="/style.css"></head>
 <body>
@@ -1107,19 +1278,16 @@ async function saveSiteContent() {
 <div class="main-nav"><a href="/comic/chapter1.html">Comic</a><a href="/archive/index.html">Archive</a><a href="/gallery/index.html">Gallery</a><a href="/characters/index.html">Characters</a></div>
 <div class="section-title" style="margin:40px 0 20px;">Characters</div>
 <div class="characters-grid">
-${chars.map(c => `<div class="character-item"><img src="${c.image}" alt="${c.name}"><span>${c.name}</span><p style="font-size:12px; color:#aaa;">${c.desc}</p></div>`).join('')}
+${characters.map(c => `<div class="character-item"><img src="${c.image}" alt="${c.name}"><span>${c.name}</span><p style="font-size:12px; color:#aaa;">${c.desc}</p></div>`).join('')}
 </div>
 <footer>© 2026 Renclinkcreaky. All rights reserved.</footer>
 </body>
 </html>`;
-    
-    const charRes = await apiGet("characters/index.html").catch(() => null);
-    await apiPut("characters/index.html", strToBase64(charHtml), "Update characters", charRes?.sha);
-    
-    // 3. 更新 gallery/index.html
-    let galleryJson = document.getElementById("gallery-json").value;
-    let galleryItems = JSON.parse(galleryJson);
-    let galleryHtml = `<!DOCTYPE html>
+        const charRes = await apiGet("characters/index.html").catch(() => null);
+        await apiPut("characters/index.html", strToBase64(charHtml), "Update characters", charRes?.sha);
+        
+        // 3. 生成 gallery/index.html
+        let galleryHtml = `<!DOCTYPE html>
 <html lang="en">
 <head><meta charset="UTF-8"><title>Gallery — RENCLINKCREAKY</title><link rel="stylesheet" href="/style.css"></head>
 <body>
@@ -1132,16 +1300,72 @@ ${galleryItems.map(item => `<div class="character-item"><img src="${item.src}" a
 <footer>© 2026 Renclinkcreaky. All rights reserved.</footer>
 </body>
 </html>`;
-    
-    const galleryRes = await apiGet("gallery/index.html").catch(() => null);
-    await apiPut("gallery/index.html", strToBase64(galleryHtml), "Update gallery", galleryRes?.sha);
-    
-    showToast("站点内容已更新！", "success");
-  } catch(e) {
-    showToast("保存失败: " + e.message, "error");
-    console.error(e);
-  }
+        const galleryRes = await apiGet("gallery/index.html").catch(() => null);
+        await apiPut("gallery/index.html", strToBase64(galleryHtml), "Update gallery", galleryRes?.sha);
+        
+        showToast("站点内容已更新！", "success");
+    } catch(e) {
+        showToast("保存失败: " + e.message, "error");
+        console.error(e);
+    }
 }
+
+// 图片上传辅助
+const heroDrop = document.getElementById("hero-drop");
+const heroFile = document.getElementById("hero-file");
+heroDrop.addEventListener("dragover", e => { e.preventDefault(); heroDrop.classList.add("drag-over"); });
+heroDrop.addEventListener("dragleave", () => heroDrop.classList.remove("drag-over"));
+heroDrop.addEventListener("drop", async e => {
+    e.preventDefault(); heroDrop.classList.remove("drag-over");
+    const file = e.dataTransfer.files[0];
+    if (file && file.type.startsWith("image/")) {
+        const ext = file.name.split('.').pop();
+        const filename = `hero_${Date.now()}.${ext}`;
+        const path = `images/${filename}`;
+        const uploadedPath = await uploadImage(file, path);
+        document.getElementById("hero-image").value = uploadedPath;
+        showToast("英雄图片已上传", "success");
+    }
+});
+heroFile.addEventListener("change", async e => {
+    const file = e.target.files[0];
+    if (file) {
+        const ext = file.name.split('.').pop();
+        const filename = `hero_${Date.now()}.${ext}`;
+        const path = `images/${filename}`;
+        const uploadedPath = await uploadImage(file, path);
+        document.getElementById("hero-image").value = uploadedPath;
+        showToast("英雄图片已上传", "success");
+    }
+});
+
+const thumbDrop = document.getElementById("thumb-drop");
+const thumbFile = document.getElementById("thumb-file");
+thumbDrop.addEventListener("dragover", e => { e.preventDefault(); thumbDrop.classList.add("drag-over"); });
+thumbDrop.addEventListener("dragleave", () => thumbDrop.classList.remove("drag-over"));
+thumbDrop.addEventListener("drop", async e => {
+    e.preventDefault(); thumbDrop.classList.remove("drag-over");
+    const file = e.dataTransfer.files[0];
+    if (file && file.type.startsWith("image/")) {
+        const ext = file.name.split('.').pop();
+        const filename = `thumb_${Date.now()}.${ext}`;
+        const path = `images/${filename}`;
+        const uploadedPath = await uploadImage(file, path);
+        document.getElementById("latest-thumb").value = uploadedPath;
+        showToast("缩略图已上传", "success");
+    }
+});
+thumbFile.addEventListener("change", async e => {
+    const file = e.target.files[0];
+    if (file) {
+        const ext = file.name.split('.').pop();
+        const filename = `thumb_${Date.now()}.${ext}`;
+        const path = `images/${filename}`;
+        const uploadedPath = await uploadImage(file, path);
+        document.getElementById("latest-thumb").value = uploadedPath;
+        showToast("缩略图已上传", "success");
+    }
+});
 </script>
 </body>
 </html>
