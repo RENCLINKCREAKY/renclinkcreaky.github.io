@@ -2,14 +2,15 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 <title>Chapter 1 - RENCLINKCREAKY — RENCLINKCREAKY</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
-:root{--accent:#e8153a;--bg:#111;--nav-bg:#000;--surface:#1c1c1c;--surface2:#262626;--text:#f0f0f0;--muted:#777;--border:#2a2a2a;}
+:root{--accent:#e8153a;--bg:#111;--nav-bg:#000;--surface:#1c1c1c;--surface2:#262626;--text:#f0f0f0;--muted:#777;--border:#2a2a2a;--reader-bg:#111;--reader-text:#f0f0f0;}
 *{margin:0;padding:0;box-sizing:border-box;}html{scroll-behavior:smooth;}
-body{background:var(--bg);color:var(--text);font-family:'Noto Sans TC',sans-serif;min-height:100vh;}
-.topbar{background:var(--nav-bg);border-bottom:1px solid var(--border);height:52px;display:flex;align-items:center;justify-content:space-between;padding:0 16px;gap:12px;position:sticky;top:0;z-index:50;}
+body{background:var(--reader-bg);color:var(--reader-text);font-family:'Noto Sans TC',sans-serif;min-height:100vh;transition:background 0.3s, color 0.3s;}
+.topbar{background:var(--nav-bg);border-bottom:1px solid var(--border);height:52px;display:flex;align-items:center;justify-content:space-between;padding:0 16px;gap:12px;position:sticky;top:0;z-index:100;transition:top 0.3s;}
+.topbar.hide{top:-52px;}
 .topbar-left{display:flex;align-items:center;gap:12px;}
 .back-btn{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--muted);text-decoration:none;transition:color .2s;}
 .back-btn:hover{color:var(--text);}
@@ -20,11 +21,11 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans TC',sans-seri
 .view-btn.active{background:var(--surface2);color:var(--text);}
 .fs-btn{padding:5px 10px;background:transparent;border:1px solid var(--border);border-radius:6px;color:var(--muted);cursor:pointer;font-size:13px;}
 .fs-btn:hover{color:var(--text);}
-.progress-bar{height:2px;background:var(--border);}
-.progress-fill{height:100%;background:var(--accent);transition:width .3s;}
+.progress-bar{height:2px;background:var(--border);position:sticky;top:52px;z-index:99;}
+.progress-fill{height:100%;background:var(--accent);transition:width .3s;width:0%;}
 .page-count{font-size:12px;color:var(--muted);white-space:nowrap;}
 #scroll-view .pages{display:flex;flex-direction:column;align-items:center;}
-#scroll-view .pages img{width:100%;max-width:800px;display:block;}
+#scroll-view .pages img{width:100%;max-width:800px;display:block;margin-bottom:2px;cursor:pointer;}
 #page-view{display:none;}
 #page-view .page-container{display:flex;justify-content:center;min-height:calc(100vh - 56px);cursor:pointer;}
 #page-view .page-container img{width:100%;max-width:800px;display:block;}
@@ -40,7 +41,7 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans TC',sans-seri
 .cnav-btn.disabled{opacity:.3;pointer-events:none;}
 .cnav-btn small{display:block;font-size:11px;color:var(--muted);margin-top:2px;}
 .divider{max-width:800px;margin:12px auto;border:none;border-top:1px solid var(--border);}
-.reactions{max-width:800px;margin:0 auto;padding:20px 20px 0;display:flex;align-items:center;gap:12px;}
+.reactions{max-width:800px;margin:0 auto;padding:20px 20px 0;display:flex;align-items:center;gap:12px;flex-wrap:wrap;}
 .like-btn{display:flex;align-items:center;gap:6px;padding:8px 16px;background:var(--surface);border:1px solid var(--border);border-radius:20px;cursor:pointer;font-size:14px;color:var(--muted);transition:all .2s;font-family:inherit;}
 .like-btn:hover{border-color:var(--accent);color:var(--accent);}
 .like-btn.liked{background:rgba(232,21,58,.1);border-color:var(--accent);color:var(--accent);}
@@ -52,11 +53,21 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans TC',sans-seri
 .end-card{text-align:center;padding:36px 20px 28px;color:var(--muted);font-size:14px;}
 .end-line{display:flex;align-items:center;gap:12px;justify-content:center;}
 .end-line::before,.end-line::after{content:'';flex:1;max-width:80px;height:1px;background:var(--border);}
-@media(max-width:600px){.chapter-title,.key-hint{display:none;}}
+.author-note{max-width:800px;margin:20px auto 0;background:var(--surface);border-left:4px solid var(--accent);padding:12px 16px;border-radius:8px;font-size:14px;color:var(--text);}
+/* 双页模式 */
+#scroll-view.double-page .pages{display:grid;grid-template-columns:1fr 1fr;gap:16px;max-width:1200px;margin:0 auto;}
+#scroll-view.double-page .pages img{max-width:100%;}
+/* 全屏缩放 */
+.fullscreen-img{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.9);display:flex;align-items:center;justify-content:center;z-index:1000;cursor:zoom-out;}
+.fullscreen-img img{max-width:90%;max-height:90%;object-fit:contain;}
+/* 阅读设置面板 */
+.reader-settings{position:fixed;bottom:20px;right:20px;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:10px;display:flex;gap:8px;z-index:200;}
+.reader-settings button{background:var(--surface2);border:none;color:var(--text);padding:6px 12px;border-radius:4px;cursor:pointer;}
+@media(max-width:600px){.chapter-title,.key-hint{display:none;}.reader-settings{display:none;}}
 </style>
 </head>
 <body>
-<div class="topbar">
+<div class="topbar" id="topbar">
   <div class="topbar-left">
     <a class="back-btn" href="https://renclinkcreaky.github.io/archive/index.html">
       <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>Archive
@@ -82,6 +93,7 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans TC',sans-seri
     <span class="cnav-btn" style="background:transparent; cursor:default;">Chapter 2</span>
   </div>
 </div>
+
 <div id="scroll-view"><div class="pages">
     <img src="../images/ch1_01.png" alt="Chapter 1 - RENCLINKCREAKY Page 1">
     <img src="../images/ch1_02.png" alt="Chapter 1 - RENCLINKCREAKY Page 2">
@@ -104,6 +116,13 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans TC',sans-seri
 <hr class="divider">
 <div class="reactions">
   <button class="like-btn" id="lb" onclick="tl()"><span id="li">&#9825;</span><span id="lc">Like this chapter</span></button>
+  <div class="reader-settings">
+    <button onclick="toggleDoublePage()">📖 双页</button>
+    <button onclick="toggleAutoScroll()">▶ 自动滚动</button>
+    <button onclick="setTheme('light')">☀️</button>
+    <button onclick="setTheme('dark')">🌙</button>
+    <button onclick="setTheme('sepia')">📘</button>
+  </div>
   <a class="rss-link" href="https://renclinkcreaky.github.io/rss.xml" target="_blank"><svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24"><circle cx="6" cy="18" r="2"/><path d="M4 4a16 16 0 0116 16M4 11a9 9 0 019 9"/></svg>Subscribe via RSS</a>
 </div>
 <div class="comments-wrap">
@@ -115,18 +134,91 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans TC',sans-seri
 const P=["../images/ch1_01.png",
     "../images/ch1_02.png"];
 const K="lk_ch1";
-let cp=0,vm="scroll";
-function sv(m){vm=m;document.getElementById("scroll-view").style.display=m==="scroll"?"block":"none";document.getElementById("page-view").style.display=m==="page"?"block":"none";document.getElementById("bs").classList.toggle("active",m==="scroll");document.getElementById("bp").classList.toggle("active",m==="page");if(m==="page"){cp=0;sp(0);}up();}
-function sp(i){cp=Math.max(0,Math.min(P.length-1,i));document.getElementById("pgi").src=P[cp];document.getElementById("pprev").disabled=cp===0;document.getElementById("pnext").disabled=cp===P.length-1;document.getElementById("pc").textContent=(cp+1)+" / "+P.length;window.scrollTo(0,0);up();}
-function np(){if(cp<P.length-1)sp(cp+1);}function pp(){if(cp>0)sp(cp-1);}
-document.addEventListener("keydown",function(e){if(vm!=="page")return;if(e.key==="ArrowRight"||e.key==="ArrowLeft"||e.key==="ArrowDown"||e.key==="ArrowUp")e.preventDefault();if(e.key==="ArrowRight"||e.key==="ArrowDown")np();else if(e.key==="ArrowLeft"||e.key==="ArrowUp")pp();});
-let tx=0;document.addEventListener("touchstart",e=>{tx=e.touches[0].clientX;});document.addEventListener("touchend",e=>{if(vm!=="page")return;const d=tx-e.changedTouches[0].clientX;if(Math.abs(d)>50){d>0?np():pp();}});
-function up(){if(vm==="scroll"){const p=(window.scrollY/(document.body.scrollHeight-window.innerHeight))*100;document.getElementById("pf").style.width=Math.min(p,100)+"%";document.getElementById("pc").textContent=Math.ceil((p/100)*P.length)+" / "+P.length;}else{document.getElementById("pf").style.width=((cp+1)/P.length*100)+"%";}}
-window.addEventListener("scroll",up);up();
+let cp=0,vm="scroll",autoScrollInterval=null,autoScrollSpeed=1;
+let lastScrollY=0,topbarTimeout=null;
+function sv(m){
+  vm=m;
+  document.getElementById("scroll-view").style.display=m==="scroll"?"block":"none";
+  document.getElementById("page-view").style.display=m==="page"?"block":"none";
+  document.getElementById("bs").classList.toggle("active",m==="scroll");
+  document.getElementById("bp").classList.toggle("active",m==="page");
+  if(m==="page"){cp=0;sp(0);}
+  up();
+  if(autoScrollInterval){stopAutoScroll();}
+}
+function sp(i){cp=Math.max(0,Math.min(P.length-1,i));document.getElementById("pgi").src=P[cp];document.getElementById("pprev").disabled=cp===0;document.getElementById("pnext").disabled=cp===P.length-1;document.getElementById("pc").textContent=(cp+1)+" / "+P.length;window.scrollTo(0,0);up();saveCurrentPage();}
+function np(){if(cp<P.length-1)sp(cp+1);}
+function pp(){if(cp>0)sp(cp-1);}
+function saveCurrentPage(){localStorage.setItem("reader_page_1",cp);}
+function loadSavedPage(){const saved=localStorage.getItem("reader_page_1");if(saved!==null){cp=parseInt(saved);if(vm==="page")sp(cp);}}
+document.addEventListener("keydown",function(e){
+  if(vm!=="page")return;
+  if(e.key==="ArrowRight"||e.key==="ArrowLeft"||e.key==="ArrowDown"||e.key==="ArrowUp")e.preventDefault();
+  if(e.key==="ArrowRight"||e.key==="ArrowDown")np();
+  else if(e.key==="ArrowLeft"||e.key==="ArrowUp")pp();
+});
+let tx=0;document.addEventListener("touchstart",e=>{tx=e.touches[0].clientX;});
+document.addEventListener("touchend",e=>{if(vm!=="page")return;const d=tx-e.changedTouches[0].clientX;if(Math.abs(d)>50){d>0?np():pp();}});
+function up(){
+  if(vm==="scroll"){
+    const p=(window.scrollY/(document.body.scrollHeight-window.innerHeight))*100;
+    document.getElementById("pf").style.width=Math.min(p,100)+"%";
+    document.getElementById("pc").textContent=Math.ceil((p/100)*P.length)+" / "+P.length;
+  }else{
+    document.getElementById("pf").style.width=((cp+1)/P.length*100)+"%";
+  }
+}
+window.addEventListener("scroll",function(){
+  up();
+  if(topbarTimeout)clearTimeout(topbarTimeout);
+  document.getElementById("topbar").classList.remove("hide");
+  topbarTimeout=setTimeout(()=>{
+    if(window.scrollY>100)document.getElementById("topbar").classList.add("hide");
+  },2000);
+});
+up();loadSavedPage();
 function toggleFS(){if(!document.fullscreenElement)document.documentElement.requestFullscreen();else document.exitFullscreen();}
 function tl(){const l=localStorage.getItem(K)==="1";if(l){localStorage.removeItem(K);document.getElementById("lb").classList.remove("liked");document.getElementById("li").textContent="\u2665\u0338";document.getElementById("lc").textContent="Like this chapter";}else{localStorage.setItem(K,"1");document.getElementById("lb").classList.add("liked");document.getElementById("li").textContent="\u2665";document.getElementById("lc").textContent="Liked!";}}
 if(localStorage.getItem(K)==="1"){document.getElementById("lb").classList.add("liked");document.getElementById("li").textContent="\u2665";document.getElementById("lc").textContent="Liked!";}
 document.getElementById("pc").textContent="1 / "+P.length;
+// 双页模式
+let doublePage=false;
+function toggleDoublePage(){
+  doublePage=!doublePage;
+  const sv=document.getElementById("scroll-view");
+  if(doublePage)sv.classList.add("double-page");
+  else sv.classList.remove("double-page");
+}
+// 自动滚动
+function toggleAutoScroll(){
+  if(autoScrollInterval){stopAutoScroll();}
+  else{
+    autoScrollInterval=setInterval(()=>{window.scrollBy(0,autoScrollSpeed*2);},20);
+    showToast("自动滚动已开启");
+  }
+}
+function stopAutoScroll(){
+  if(autoScrollInterval){clearInterval(autoScrollInterval);autoScrollInterval=null;showToast("自动滚动已停止");}
+}
+// 主题切换
+function setTheme(theme){
+  const root=document.documentElement;
+  if(theme==='light'){root.style.setProperty('--reader-bg','#f5f5f5');root.style.setProperty('--reader-text','#222');}
+  else if(theme==='dark'){root.style.setProperty('--reader-bg','#111');root.style.setProperty('--reader-text','#f0f0f0');}
+  else if(theme==='sepia'){root.style.setProperty('--reader-bg','#fbf7e9');root.style.setProperty('--reader-text','#5b3c1e');}
+  localStorage.setItem('reader_theme',theme);
+}
+const savedTheme=localStorage.getItem('reader_theme');if(savedTheme)setTheme(savedTheme);
+// 图片点击放大
+document.querySelectorAll('#scroll-view img').forEach(img=>{
+  img.addEventListener('click',()=>{
+    const fullDiv=document.createElement('div');fullDiv.className='fullscreen-img';
+    const fullImg=document.createElement('img');fullImg.src=img.src;
+    fullDiv.appendChild(fullImg);fullDiv.onclick=()=>fullDiv.remove();
+    document.body.appendChild(fullDiv);
+  });
+});
+function showToast(msg){const t=document.createElement('div');t.textContent=msg;t.style.cssText='position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:#333;color:#fff;padding:8px 16px;border-radius:20px;z-index:1000;font-size:12px;';document.body.appendChild(t);setTimeout(()=>t.remove(),2000);}
 </script>
 </body>
 </html>
