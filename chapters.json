@@ -8,6 +8,15 @@
         "images/ch1_01.jpg"
       ],
       "authorNote": ""
+    },
+    {
+      "number": 2,
+      "title": "j",
+      "cover": "images/cover_ch2.png",
+      "pages": [
+        "images/ch2_01.png"
+      ],
+      "authorNote": ""
     }
   ]
 }
