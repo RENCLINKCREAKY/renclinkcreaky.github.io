@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-<title>Chapter 2 - RENCLINKCREAKY — RENCLINKCREAKY</title>
+<title>j — RENCLINKCREAKY</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
 :root{--accent:#e8153a;--bg:#111;--nav-bg:#000;--surface:#1c1c1c;--surface2:#262626;--text:#f0f0f0;--muted:#777;--border:#2a2a2a;--reader-bg:#111;--reader-text:#f0f0f0;}
@@ -54,13 +54,10 @@ body{background:var(--reader-bg);color:var(--reader-text);font-family:'Noto Sans
 .end-line{display:flex;align-items:center;gap:12px;justify-content:center;}
 .end-line::before,.end-line::after{content:'';flex:1;max-width:80px;height:1px;background:var(--border);}
 .author-note{max-width:800px;margin:20px auto 0;background:var(--surface);border-left:4px solid var(--accent);padding:12px 16px;border-radius:8px;font-size:14px;color:var(--text);}
-/* 双页模式 */
 #scroll-view.double-page .pages{display:grid;grid-template-columns:1fr 1fr;gap:16px;max-width:1200px;margin:0 auto;}
 #scroll-view.double-page .pages img{max-width:100%;}
-/* 全屏缩放 */
 .fullscreen-img{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.9);display:flex;align-items:center;justify-content:center;z-index:1000;cursor:zoom-out;}
 .fullscreen-img img{max-width:90%;max-height:90%;object-fit:contain;}
-/* 阅读设置面板 */
 .reader-settings{position:fixed;bottom:20px;right:20px;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:10px;display:flex;gap:8px;z-index:200;}
 .reader-settings button{background:var(--surface2);border:none;color:var(--text);padding:6px 12px;border-radius:4px;cursor:pointer;}
 @media(max-width:600px){.chapter-title,.key-hint{display:none;}.reader-settings{display:none;}}
@@ -72,7 +69,7 @@ body{background:var(--reader-bg);color:var(--reader-text);font-family:'Noto Sans
     <a class="back-btn" href="https://renclinkcreaky.github.io/archive/index.html">
       <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>Archive
     </a>
-    <span class="chapter-title">Chapter 2 - RENCLINKCREAKY</span>
+    <span class="chapter-title">j</span>
   </div>
   <div class="topbar-right">
     <span class="page-count" id="pc"></span>
@@ -88,15 +85,14 @@ body{background:var(--reader-bg);color:var(--reader-text);font-family:'Noto Sans
   <div class="key-hint" style="padding:0;">Use ←→ arrow keys or click image</div>
   <div style="display:flex; justify-content:center; gap:12px;">
     <a class="cnav-btn " href="https://renclinkcreaky.github.io/comic/chapter1.html" style="flex:0 0 auto;">← Previous</a>
-    <span class="cnav-btn" style="background:transparent; cursor:default;">Chapter 2 - RENCLINKCREAKY</span>
-    <a class="cnav-btn " href="https://renclinkcreaky.github.io/comic/chapter3.html" style="flex:0 0 auto;">Next →</a>
-    <span class="cnav-btn" style="background:transparent; cursor:default;">Chapter 3</span>
+    <span class="cnav-btn" style="background:transparent; cursor:default;">j</span>
+    <a class="cnav-btn disabled" href="#" style="flex:0 0 auto;">Next →</a>
+    <span class="cnav-btn" style="background:transparent; cursor:default;">Coming soon</span>
   </div>
 </div>
 
 <div id="scroll-view"><div class="pages">
-    <img src="../images/ch2_01.png" alt="Chapter 2 - RENCLINKCREAKY Page 1">
-    <img src="../images/ch2_02.png" alt="Chapter 2 - RENCLINKCREAKY Page 2">
+    <img src="../images/ch2_01.png" alt="j Page 1">
 </div></div>
 <div id="page-view">
   <div class="page-container" id="pgc" onclick="np()"><img id="pgi" src="" alt=""></div>
@@ -107,12 +103,12 @@ body{background:var(--reader-bg);color:var(--reader-text);font-family:'Noto Sans
   <div class="key-hint" style="padding:0;">Use ←→ arrow keys or click image</div>
   <div style="display:flex; justify-content:center; gap:12px;">
     <a class="cnav-btn " href="https://renclinkcreaky.github.io/comic/chapter1.html" style="flex:0 0 auto;">← Previous</a>
-    <span class="cnav-btn" style="background:transparent; cursor:default;">Chapter 2 - RENCLINKCREAKY</span>
-    <a class="cnav-btn " href="https://renclinkcreaky.github.io/comic/chapter3.html" style="flex:0 0 auto;">Next →</a>
-    <span class="cnav-btn" style="background:transparent; cursor:default;">Chapter 3</span>
+    <span class="cnav-btn" style="background:transparent; cursor:default;">j</span>
+    <a class="cnav-btn disabled" href="#" style="flex:0 0 auto;">Next →</a>
+    <span class="cnav-btn" style="background:transparent; cursor:default;">Coming soon</span>
   </div>
 </div>
-<div class="end-card"><div class="end-line">End of Chapter 2 - RENCLINKCREAKY</div></div>
+<div class="end-card"><div class="end-line">End of j</div></div>
 <hr class="divider">
 <div class="reactions">
   <button class="like-btn" id="lb" onclick="tl()"><span id="li">&#9825;</span><span id="lc">Like this chapter</span></button>
@@ -131,8 +127,7 @@ body{background:var(--reader-bg);color:var(--reader-text);font-family:'Noto Sans
   <script src="https://utteranc.es/client.js" repo="RENCLINKCREAKY/renclinkcreaky.github.io" issue-term="pathname" theme="github-dark" crossorigin="anonymous" async></script>
 </div>
 <script>
-const P=["../images/ch2_01.png",
-    "../images/ch2_02.png"];
+const P=["../images/ch2_01.png"];
 const K="lk_ch2";
 let cp=0,vm="scroll",autoScrollInterval=null,autoScrollSpeed=1;
 let lastScrollY=0,topbarTimeout=null;
@@ -181,7 +176,6 @@ function toggleFS(){if(!document.fullscreenElement)document.documentElement.requ
 function tl(){const l=localStorage.getItem(K)==="1";if(l){localStorage.removeItem(K);document.getElementById("lb").classList.remove("liked");document.getElementById("li").textContent="\u2665\u0338";document.getElementById("lc").textContent="Like this chapter";}else{localStorage.setItem(K,"1");document.getElementById("lb").classList.add("liked");document.getElementById("li").textContent="\u2665";document.getElementById("lc").textContent="Liked!";}}
 if(localStorage.getItem(K)==="1"){document.getElementById("lb").classList.add("liked");document.getElementById("li").textContent="\u2665";document.getElementById("lc").textContent="Liked!";}
 document.getElementById("pc").textContent="1 / "+P.length;
-// 双页模式
 let doublePage=false;
 function toggleDoublePage(){
   doublePage=!doublePage;
@@ -189,7 +183,6 @@ function toggleDoublePage(){
   if(doublePage)sv.classList.add("double-page");
   else sv.classList.remove("double-page");
 }
-// 自动滚动
 function toggleAutoScroll(){
   if(autoScrollInterval){stopAutoScroll();}
   else{
@@ -200,7 +193,6 @@ function toggleAutoScroll(){
 function stopAutoScroll(){
   if(autoScrollInterval){clearInterval(autoScrollInterval);autoScrollInterval=null;showToast("自动滚动已停止");}
 }
-// 主题切换
 function setTheme(theme){
   const root=document.documentElement;
   if(theme==='light'){root.style.setProperty('--reader-bg','#f5f5f5');root.style.setProperty('--reader-text','#222');}
@@ -209,7 +201,6 @@ function setTheme(theme){
   localStorage.setItem('reader_theme',theme);
 }
 const savedTheme=localStorage.getItem('reader_theme');if(savedTheme)setTheme(savedTheme);
-// 图片点击放大
 document.querySelectorAll('#scroll-view img').forEach(img=>{
   img.addEventListener('click',()=>{
     const fullDiv=document.createElement('div');fullDiv.className='fullscreen-img';
