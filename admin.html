@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Admin — RENCLINKCREAKY</title>
 <style>
+/* 你的原有样式（完全不变） */
 :root {
   --accent: #e8153a;
   --bg: #0e0e0e;
@@ -192,6 +193,7 @@ nav { background:#000; border-bottom:2px solid var(--accent); height:52px; displ
 <div class="toast" id="toast"></div>
 
 <script>
+// ==================== 核心变量和辅助函数 ====================
 const REPO = "RENCLINKCREAKY/renclinkcreaky.github.io";
 const API  = "https://api.github.com/repos/" + REPO + "/contents/";
 
@@ -234,12 +236,68 @@ async function uploadImage(file, targetPath) {
 }
 function escapeHtml(str) { return str.replace(/[&<>]/g, m => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;' }[m])); }
 
+// ==================== 迁移旧章节到 chapters.json ====================
+async function migrateOldChapters() {
+  console.log("Checking for old chapters...");
+  try {
+    const files = await apiGet("comic");
+    const chapterFiles = files.filter(f => f.name.match(/^chapter\d+\.html$/)).sort((a,b) => {
+      const numA = parseInt(a.name.match(/\d+/)[0]);
+      const numB = parseInt(b.name.match(/\d+/)[0]);
+      return numA - numB;
+    });
+    if (chapterFiles.length === 0) return false;
+    
+    console.log(`Found ${chapterFiles.length} old chapter files, migrating...`);
+    let migrated = [];
+    for (const file of chapterFiles) {
+      const content = atob(file.content.replace(/\n/g, ""));
+      // 提取标题
+      let titleMatch = content.match(/<span class="chapter-title">(.*?)<\/span>/);
+      let title = titleMatch ? titleMatch[1] : `Chapter ${file.name.match(/\d+/)[0]}`;
+      if (!titleMatch) {
+        titleMatch = content.match(/<title>(.*?)<\/title>/);
+        if (titleMatch) title = titleMatch[1].replace(/ — RENCLINKCREAKY/, '');
+      }
+      // 提取图片路径
+      const imgMatches = [...content.matchAll(/src="\.\.\/([^"]+\.(png|jpg|jpeg|webp))"/gi)];
+      const pages = imgMatches.map(m => m[1]);
+      // 提取作者笔记（可选）
+      let noteMatch = content.match(/<div class="author-note">(.*?)<\/div>/);
+      let authorNote = noteMatch ? noteMatch[1].replace(/<[^>]*>/g, '') : "";
+      // 提取封面（如果有，从页面中找 cover 相关的图，简单起见先留空）
+      let cover = null;
+      const coverMatch = content.match(/<img[^>]*class="chapter-cover"[^>]*src="([^"]+)"/);
+      if (coverMatch) cover = coverMatch[1];
+      
+      migrated.push({
+        number: parseInt(file.name.match(/\d+/)[0]),
+        title: title,
+        cover: cover,
+        pages: pages,
+        authorNote: authorNote
+      });
+    }
+    // 按编号排序
+    migrated.sort((a,b) => a.number - b.number);
+    chaptersData.chapters = migrated;
+    await saveChaptersData();
+    console.log("Migration completed.");
+    return true;
+  } catch(e) {
+    console.warn("Migration failed:", e);
+    return false;
+  }
+}
+
 async function loadChaptersData() {
   try {
     const f = await apiGet("chapters.json");
     chaptersData = JSON.parse(atob(f.content.replace(/\n/g, "")));
   } catch(e) {
     chaptersData = { chapters: [] };
+    // 尝试迁移旧章节
+    await migrateOldChapters();
   }
 }
 async function saveChaptersData() {
@@ -248,6 +306,7 @@ async function saveChaptersData() {
   await apiPut("chapters.json", strToBase64(content), "Update chapters data", sha);
 }
 
+// ==================== 生成章节 HTML（新模板，保留所有功能） ====================
 function generateChapterHTML(title, chNum, imagePaths, prevLink, prevDisabled, prevLabel, nextLink, nextDisabled, nextLabel, authorNote = "", coverPath = "") {
   const imgTags = imagePaths.map((p, i) => `    <img src="../${p}" alt="${title} Page ${i+1}">`).join("\n");
   const pageArray = imagePaths.map(p => `"../${p}"`).join(",\n    ");
