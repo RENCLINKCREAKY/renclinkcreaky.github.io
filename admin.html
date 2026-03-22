@@ -19,17 +19,14 @@
 * { margin:0; padding:0; box-sizing:border-box; }
 body { background:var(--bg); color:var(--text); font-family:system-ui,sans-serif; min-height:100vh; }
 
-/* ── Nav ── */
 nav { background:#000; border-bottom:2px solid var(--accent); height:52px; display:flex; align-items:center; justify-content:space-between; padding:0 24px; }
 .logo { font-size:18px; font-weight:700; letter-spacing:2px; color:#fff; }
 .logo span { color:var(--accent); }
 .nav-status { font-size:12px; color:var(--muted); }
 
-/* ── Screens ── */
 .screen { display:none; max-width:640px; margin:0 auto; padding:40px 20px 80px; }
 .screen.active { display:block; }
 
-/* ── Setup screen ── */
 .setup-card { background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:28px; }
 .setup-title { font-size:22px; font-weight:700; margin-bottom:8px; }
 .setup-sub { font-size:14px; color:var(--muted); line-height:1.7; margin-bottom:24px; }
@@ -48,7 +45,6 @@ nav { background:#000; border-bottom:2px solid var(--accent); height:52px; displ
 .btn-primary:hover { background:#c0102e; }
 .btn-primary:disabled { background:#555; cursor:not-allowed; }
 
-/* ── Main screen ── */
 .section-title { font-size:12px; font-weight:700; letter-spacing:2px; color:var(--muted); text-transform:uppercase; margin-bottom:16px; }
 .chapters-list { margin-bottom:32px; }
 .ch-row { display:flex; align-items:center; justify-content:space-between; padding:14px 16px; background:var(--surface); border:1px solid var(--border); border-radius:8px; margin-bottom:8px; }
@@ -62,7 +58,6 @@ nav { background:#000; border-bottom:2px solid var(--accent); height:52px; displ
 .btn-new { display:flex; align-items:center; justify-content:center; gap:8px; width:100%; padding:13px; background:transparent; border:1px solid var(--accent); color:var(--accent); border-radius:8px; font-size:15px; font-weight:700; cursor:pointer; transition:all 0.2s; }
 .btn-new:hover { background:rgba(232,21,58,0.08); }
 
-/* ── Upload screen ── */
 .field-label { font-size:13px; color:var(--muted); margin-bottom:6px; display:block; }
 .field-input { width:100%; padding:11px 14px; background:var(--surface); border:1px solid var(--border); border-radius:8px; color:var(--text); font-size:14px; outline:none; margin-bottom:20px; transition:border 0.2s; }
 .field-input:focus { border-color:var(--accent); }
@@ -85,24 +80,20 @@ nav { background:#000; border-bottom:2px solid var(--accent); height:52px; displ
 .btn-back { flex:0 0 auto; padding:13px 20px; background:var(--surface); border:1px solid var(--border); border-radius:8px; color:var(--muted); font-size:14px; cursor:pointer; transition:all 0.2s; }
 .btn-back:hover { color:var(--text); }
 
-/* ── Progress ── */
 .progress-wrap { display:none; margin-bottom:20px; }
 .progress-wrap.active { display:block; }
 .progress-label { font-size:13px; color:var(--muted); margin-bottom:8px; }
 .progress-bar { height:4px; background:var(--surface2); border-radius:2px; overflow:hidden; }
 .progress-fill { height:100%; background:var(--green); transition:width 0.3s; width:0%; }
 
-/* ── Toast ── */
 .toast { position:fixed; bottom:24px; left:50%; transform:translateX(-50%) translateY(80px); background:var(--surface); border:1px solid var(--border); border-radius:8px; padding:12px 20px; font-size:14px; opacity:0; transition:all 0.3s; z-index:999; white-space:nowrap; }
 .toast.show { transform:translateX(-50%) translateY(0); opacity:1; }
 .toast.success { border-color:var(--green); color:#5DCAA5; }
 .toast.error { border-color:var(--accent); color:#ff6b7a; }
 
-/* ── Token reset ── */
 .reset-link { font-size:12px; color:var(--muted); cursor:pointer; text-decoration:underline; }
 .reset-link:hover { color:var(--text); }
 
-/* ── Edit screen ── */
 .ch-row-actions { display:flex; gap:8px; align-items:center; }
 .ch-edit-btn { font-size:12px; color:var(--muted); background:var(--surface2); border:1px solid var(--border); border-radius:5px; padding:4px 10px; cursor:pointer; transition:all .2s; }
 .ch-edit-btn:hover { color:var(--text); border-color:var(--muted); }
@@ -200,6 +191,15 @@ nav { background:#000; border-bottom:2px solid var(--accent); height:52px; displ
     <div id="gallery-list"></div>
     <button class="btn-new" style="margin-top:12px;" onclick="addGalleryItem()">+ 添加图片</button>
   </div>
+  <div style="background:var(--surface); border-radius:12px; padding:20px; margin-bottom:20px;">
+    <div style="font-weight:bold; margin-bottom:12px;">🔗 社交链接</div>
+    <label class="field-label">Twitter URL</label>
+    <input class="field-input" id="social-twitter" placeholder="https://twitter.com/...">
+    <label class="field-label">Instagram URL</label>
+    <input class="field-input" id="social-instagram" placeholder="https://instagram.com/...">
+    <label class="field-label">其他链接 (可选)</label>
+    <input class="field-input" id="social-other" placeholder="https://...">
+  </div>
   <button class="btn-primary" onclick="saveSiteContent()" style="margin-top:10px;">💾 保存所有站点内容</button>
   <button class="btn-back" onclick="showMain()" style="margin-top:12px;">← 返回章节管理</button>
 </div>
@@ -209,6 +209,8 @@ nav { background:#000; border-bottom:2px solid var(--accent); height:52px; displ
   <div class="section-title" id="edit-title-label">Edit Chapter</div>
   <label class="field-label">Chapter Title</label>
   <input class="field-input" id="edit-chapter-title" placeholder="Chapter title">
+  <label class="field-label">Author Note (optional)</label>
+  <textarea class="field-input" id="edit-author-note" rows="3" placeholder="Add a note for readers..."></textarea>
   <div class="edit-info"><b>Current pages</b> — drag to reorder, click × to remove a page. New pages you add will be appended at the end.</div>
   <div class="existing-pages" id="existing-pages"></div>
   <div class="divider-label">Add new pages</div>
@@ -224,6 +226,7 @@ nav { background:#000; border-bottom:2px solid var(--accent); height:52px; displ
 <div class="toast" id="toast"></div>
 
 <script>
+// ==================== 第一部分 JavaScript ====================
 const REPO = "RENCLINKCREAKY/renclinkcreaky.github.io";
 const API  = "https://api.github.com/repos/" + REPO + "/contents/";
 
@@ -317,23 +320,26 @@ function renderPreviews() {
   wrap.innerHTML = uploadedFiles.map((f,i) => `<div class="page-thumb"><img src="${f.dataUrl}"><span class="pg-num">${i+1}</span><button class="pg-del" onclick="removePage(${i})">×</button></div>`).join("");
 }
 function removePage(i) { uploadedFiles.splice(i,1); renderPreviews(); }
-
-// 生成章节HTML（带顶部/底部导航）
-function generateChapterHTML(title, chNum, imageNames, prevLink, prevDisabled, prevLabel, nextLink, nextDisabled, nextLabel) {
+  // ==================== 第二部分 JavaScript ====================
+// 生成章节HTML（带双页模式、自动滚动、背景调节等新功能）
+function generateChapterHTML(title, chNum, imageNames, prevLink, prevDisabled, prevLabel, nextLink, nextDisabled, nextLabel, authorNote = "") {
   const imgTags = imageNames.map((img, i) => `    <img src="../${img.path}" alt="${title} Page ${i+1}">`).join("\n");
   const pageArray = imageNames.map(img => `"../${img.path}"`).join(",\n    ");
+  // 注入作者笔记（如果存在）
+  const authorNoteHtml = authorNote ? `<div class="author-note">${escapeHtml(authorNote)}</div>` : "";
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 <title>${title} — RENCLINKCREAKY</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
-:root{--accent:#e8153a;--bg:#111;--nav-bg:#000;--surface:#1c1c1c;--surface2:#262626;--text:#f0f0f0;--muted:#777;--border:#2a2a2a;}
+:root{--accent:#e8153a;--bg:#111;--nav-bg:#000;--surface:#1c1c1c;--surface2:#262626;--text:#f0f0f0;--muted:#777;--border:#2a2a2a;--reader-bg:#111;--reader-text:#f0f0f0;}
 *{margin:0;padding:0;box-sizing:border-box;}html{scroll-behavior:smooth;}
-body{background:var(--bg);color:var(--text);font-family:'Noto Sans TC',sans-serif;min-height:100vh;}
-.topbar{background:var(--nav-bg);border-bottom:1px solid var(--border);height:52px;display:flex;align-items:center;justify-content:space-between;padding:0 16px;gap:12px;position:sticky;top:0;z-index:50;}
+body{background:var(--reader-bg);color:var(--reader-text);font-family:'Noto Sans TC',sans-serif;min-height:100vh;transition:background 0.3s, color 0.3s;}
+.topbar{background:var(--nav-bg);border-bottom:1px solid var(--border);height:52px;display:flex;align-items:center;justify-content:space-between;padding:0 16px;gap:12px;position:sticky;top:0;z-index:100;transition:top 0.3s;}
+.topbar.hide{top:-52px;}
 .topbar-left{display:flex;align-items:center;gap:12px;}
 .back-btn{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--muted);text-decoration:none;transition:color .2s;}
 .back-btn:hover{color:var(--text);}
@@ -344,11 +350,11 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans TC',sans-seri
 .view-btn.active{background:var(--surface2);color:var(--text);}
 .fs-btn{padding:5px 10px;background:transparent;border:1px solid var(--border);border-radius:6px;color:var(--muted);cursor:pointer;font-size:13px;}
 .fs-btn:hover{color:var(--text);}
-.progress-bar{height:2px;background:var(--border);}
-.progress-fill{height:100%;background:var(--accent);transition:width .3s;}
+.progress-bar{height:2px;background:var(--border);position:sticky;top:52px;z-index:99;}
+.progress-fill{height:100%;background:var(--accent);transition:width .3s;width:0%;}
 .page-count{font-size:12px;color:var(--muted);white-space:nowrap;}
 #scroll-view .pages{display:flex;flex-direction:column;align-items:center;}
-#scroll-view .pages img{width:100%;max-width:800px;display:block;}
+#scroll-view .pages img{width:100%;max-width:800px;display:block;margin-bottom:2px;cursor:pointer;}
 #page-view{display:none;}
 #page-view .page-container{display:flex;justify-content:center;min-height:calc(100vh - 56px);cursor:pointer;}
 #page-view .page-container img{width:100%;max-width:800px;display:block;}
@@ -364,7 +370,7 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans TC',sans-seri
 .cnav-btn.disabled{opacity:.3;pointer-events:none;}
 .cnav-btn small{display:block;font-size:11px;color:var(--muted);margin-top:2px;}
 .divider{max-width:800px;margin:12px auto;border:none;border-top:1px solid var(--border);}
-.reactions{max-width:800px;margin:0 auto;padding:20px 20px 0;display:flex;align-items:center;gap:12px;}
+.reactions{max-width:800px;margin:0 auto;padding:20px 20px 0;display:flex;align-items:center;gap:12px;flex-wrap:wrap;}
 .like-btn{display:flex;align-items:center;gap:6px;padding:8px 16px;background:var(--surface);border:1px solid var(--border);border-radius:20px;cursor:pointer;font-size:14px;color:var(--muted);transition:all .2s;font-family:inherit;}
 .like-btn:hover{border-color:var(--accent);color:var(--accent);}
 .like-btn.liked{background:rgba(232,21,58,.1);border-color:var(--accent);color:var(--accent);}
@@ -376,11 +382,21 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans TC',sans-seri
 .end-card{text-align:center;padding:36px 20px 28px;color:var(--muted);font-size:14px;}
 .end-line{display:flex;align-items:center;gap:12px;justify-content:center;}
 .end-line::before,.end-line::after{content:'';flex:1;max-width:80px;height:1px;background:var(--border);}
-@media(max-width:600px){.chapter-title,.key-hint{display:none;}}
+.author-note{max-width:800px;margin:20px auto 0;background:var(--surface);border-left:4px solid var(--accent);padding:12px 16px;border-radius:8px;font-size:14px;color:var(--text);}
+/* 双页模式 */
+#scroll-view.double-page .pages{display:grid;grid-template-columns:1fr 1fr;gap:16px;max-width:1200px;margin:0 auto;}
+#scroll-view.double-page .pages img{max-width:100%;}
+/* 全屏缩放 */
+.fullscreen-img{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.9);display:flex;align-items:center;justify-content:center;z-index:1000;cursor:zoom-out;}
+.fullscreen-img img{max-width:90%;max-height:90%;object-fit:contain;}
+/* 阅读设置面板 */
+.reader-settings{position:fixed;bottom:20px;right:20px;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:10px;display:flex;gap:8px;z-index:200;}
+.reader-settings button{background:var(--surface2);border:none;color:var(--text);padding:6px 12px;border-radius:4px;cursor:pointer;}
+@media(max-width:600px){.chapter-title,.key-hint{display:none;}.reader-settings{display:none;}}
 </style>
 </head>
 <body>
-<div class="topbar">
+<div class="topbar" id="topbar">
   <div class="topbar-left">
     <a class="back-btn" href="https://renclinkcreaky.github.io/archive/index.html">
       <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>Archive
@@ -406,6 +422,7 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans TC',sans-seri
     <span class="cnav-btn" style="background:transparent; cursor:default;">${nextLabel}</span>
   </div>
 </div>
+${authorNoteHtml}
 <div id="scroll-view"><div class="pages">
 ${imgTags}
 </div></div>
@@ -427,6 +444,13 @@ ${imgTags}
 <hr class="divider">
 <div class="reactions">
   <button class="like-btn" id="lb" onclick="tl()"><span id="li">&#9825;</span><span id="lc">Like this chapter</span></button>
+  <div class="reader-settings">
+    <button onclick="toggleDoublePage()">📖 双页</button>
+    <button onclick="toggleAutoScroll()">▶ 自动滚动</button>
+    <button onclick="setTheme('light')">☀️</button>
+    <button onclick="setTheme('dark')">🌙</button>
+    <button onclick="setTheme('sepia')">📘</button>
+  </div>
   <a class="rss-link" href="https://renclinkcreaky.github.io/rss.xml" target="_blank"><svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24"><circle cx="6" cy="18" r="2"/><path d="M4 4a16 16 0 0116 16M4 11a9 9 0 019 9"/></svg>Subscribe via RSS</a>
 </div>
 <div class="comments-wrap">
@@ -437,18 +461,91 @@ ${imgTags}
 <script>
 const P=[${pageArray}];
 const K="lk_ch${chNum}";
-let cp=0,vm="scroll";
-function sv(m){vm=m;document.getElementById("scroll-view").style.display=m==="scroll"?"block":"none";document.getElementById("page-view").style.display=m==="page"?"block":"none";document.getElementById("bs").classList.toggle("active",m==="scroll");document.getElementById("bp").classList.toggle("active",m==="page");if(m==="page"){cp=0;sp(0);}up();}
-function sp(i){cp=Math.max(0,Math.min(P.length-1,i));document.getElementById("pgi").src=P[cp];document.getElementById("pprev").disabled=cp===0;document.getElementById("pnext").disabled=cp===P.length-1;document.getElementById("pc").textContent=(cp+1)+" / "+P.length;window.scrollTo(0,0);up();}
-function np(){if(cp<P.length-1)sp(cp+1);}function pp(){if(cp>0)sp(cp-1);}
-document.addEventListener("keydown",function(e){if(vm!=="page")return;if(e.key==="ArrowRight"||e.key==="ArrowLeft"||e.key==="ArrowDown"||e.key==="ArrowUp")e.preventDefault();if(e.key==="ArrowRight"||e.key==="ArrowDown")np();else if(e.key==="ArrowLeft"||e.key==="ArrowUp")pp();});
-let tx=0;document.addEventListener("touchstart",e=>{tx=e.touches[0].clientX;});document.addEventListener("touchend",e=>{if(vm!=="page")return;const d=tx-e.changedTouches[0].clientX;if(Math.abs(d)>50){d>0?np():pp();}});
-function up(){if(vm==="scroll"){const p=(window.scrollY/(document.body.scrollHeight-window.innerHeight))*100;document.getElementById("pf").style.width=Math.min(p,100)+"%";document.getElementById("pc").textContent=Math.ceil((p/100)*P.length)+" / "+P.length;}else{document.getElementById("pf").style.width=((cp+1)/P.length*100)+"%";}}
-window.addEventListener("scroll",up);up();
+let cp=0,vm="scroll",autoScrollInterval=null,autoScrollSpeed=1;
+let lastScrollY=0,topbarTimeout=null;
+function sv(m){
+  vm=m;
+  document.getElementById("scroll-view").style.display=m==="scroll"?"block":"none";
+  document.getElementById("page-view").style.display=m==="page"?"block":"none";
+  document.getElementById("bs").classList.toggle("active",m==="scroll");
+  document.getElementById("bp").classList.toggle("active",m==="page");
+  if(m==="page"){cp=0;sp(0);}
+  up();
+  if(autoScrollInterval){stopAutoScroll();}
+}
+function sp(i){cp=Math.max(0,Math.min(P.length-1,i));document.getElementById("pgi").src=P[cp];document.getElementById("pprev").disabled=cp===0;document.getElementById("pnext").disabled=cp===P.length-1;document.getElementById("pc").textContent=(cp+1)+" / "+P.length;window.scrollTo(0,0);up();saveCurrentPage();}
+function np(){if(cp<P.length-1)sp(cp+1);}
+function pp(){if(cp>0)sp(cp-1);}
+function saveCurrentPage(){localStorage.setItem("reader_page_${chNum}",cp);}
+function loadSavedPage(){const saved=localStorage.getItem("reader_page_${chNum}");if(saved!==null){cp=parseInt(saved);if(vm==="page")sp(cp);}}
+document.addEventListener("keydown",function(e){
+  if(vm!=="page")return;
+  if(e.key==="ArrowRight"||e.key==="ArrowLeft"||e.key==="ArrowDown"||e.key==="ArrowUp")e.preventDefault();
+  if(e.key==="ArrowRight"||e.key==="ArrowDown")np();
+  else if(e.key==="ArrowLeft"||e.key==="ArrowUp")pp();
+});
+let tx=0;document.addEventListener("touchstart",e=>{tx=e.touches[0].clientX;});
+document.addEventListener("touchend",e=>{if(vm!=="page")return;const d=tx-e.changedTouches[0].clientX;if(Math.abs(d)>50){d>0?np():pp();}});
+function up(){
+  if(vm==="scroll"){
+    const p=(window.scrollY/(document.body.scrollHeight-window.innerHeight))*100;
+    document.getElementById("pf").style.width=Math.min(p,100)+"%";
+    document.getElementById("pc").textContent=Math.ceil((p/100)*P.length)+" / "+P.length;
+  }else{
+    document.getElementById("pf").style.width=((cp+1)/P.length*100)+"%";
+  }
+}
+window.addEventListener("scroll",function(){
+  up();
+  if(topbarTimeout)clearTimeout(topbarTimeout);
+  document.getElementById("topbar").classList.remove("hide");
+  topbarTimeout=setTimeout(()=>{
+    if(window.scrollY>100)document.getElementById("topbar").classList.add("hide");
+  },2000);
+});
+up();loadSavedPage();
 function toggleFS(){if(!document.fullscreenElement)document.documentElement.requestFullscreen();else document.exitFullscreen();}
 function tl(){const l=localStorage.getItem(K)==="1";if(l){localStorage.removeItem(K);document.getElementById("lb").classList.remove("liked");document.getElementById("li").textContent="\\u2665\\u0338";document.getElementById("lc").textContent="Like this chapter";}else{localStorage.setItem(K,"1");document.getElementById("lb").classList.add("liked");document.getElementById("li").textContent="\\u2665";document.getElementById("lc").textContent="Liked!";}}
 if(localStorage.getItem(K)==="1"){document.getElementById("lb").classList.add("liked");document.getElementById("li").textContent="\\u2665";document.getElementById("lc").textContent="Liked!";}
 document.getElementById("pc").textContent="1 / "+P.length;
+// 双页模式
+let doublePage=false;
+function toggleDoublePage(){
+  doublePage=!doublePage;
+  const sv=document.getElementById("scroll-view");
+  if(doublePage)sv.classList.add("double-page");
+  else sv.classList.remove("double-page");
+}
+// 自动滚动
+function toggleAutoScroll(){
+  if(autoScrollInterval){stopAutoScroll();}
+  else{
+    autoScrollInterval=setInterval(()=>{window.scrollBy(0,autoScrollSpeed*2);},20);
+    showToast("自动滚动已开启");
+  }
+}
+function stopAutoScroll(){
+  if(autoScrollInterval){clearInterval(autoScrollInterval);autoScrollInterval=null;showToast("自动滚动已停止");}
+}
+// 主题切换
+function setTheme(theme){
+  const root=document.documentElement;
+  if(theme==='light'){root.style.setProperty('--reader-bg','#f5f5f5');root.style.setProperty('--reader-text','#222');}
+  else if(theme==='dark'){root.style.setProperty('--reader-bg','#111');root.style.setProperty('--reader-text','#f0f0f0');}
+  else if(theme==='sepia'){root.style.setProperty('--reader-bg','#fbf7e9');root.style.setProperty('--reader-text','#5b3c1e');}
+  localStorage.setItem('reader_theme',theme);
+}
+const savedTheme=localStorage.getItem('reader_theme');if(savedTheme)setTheme(savedTheme);
+// 图片点击放大
+document.querySelectorAll('#scroll-view img').forEach(img=>{
+  img.addEventListener('click',()=>{
+    const fullDiv=document.createElement('div');fullDiv.className='fullscreen-img';
+    const fullImg=document.createElement('img');fullImg.src=img.src;
+    fullDiv.appendChild(fullImg);fullDiv.onclick=()=>fullDiv.remove();
+    document.body.appendChild(fullDiv);
+  });
+});
+function showToast(msg){const t=document.createElement('div');t.textContent=msg;t.style.cssText='position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:#333;color:#fff;padding:8px 16px;border-radius:20px;z-index:1000;font-size:12px;';document.body.appendChild(t);setTimeout(()=>t.remove(),2000);}
 <\/script>
 </body>
 </html>`;
@@ -605,7 +702,7 @@ async function upgradeChapter(chNum) {
     const nextLabel = nextNum ? `Chapter ${nextNum}` : "Coming soon";
 
     const imageNames = imagePaths.map(p => ({ path: p }));
-    const newHtml = generateChapterHTML(title, chNum, imageNames, prevLink, prevDisabled, prevLabel, nextLink, nextDisabled, nextLabel);
+    const newHtml = generateChapterHTML(title, chNum, imageNames, prevLink, prevDisabled, prevLabel, nextLink, nextDisabled, nextLabel, "");
     const newSha = await getSha(`comic/chapter${chNum}.html`);
     await apiPut(`comic/chapter${chNum}.html`, strToBase64(newHtml), `统一章节模板: Chapter ${chNum}`, newSha);
     console.log(`Chapter ${chNum} 升级成功`);
@@ -637,7 +734,7 @@ async function batchUpgradeChapters() {
   loadChapters();
 }
 
-// 编辑章节（拖拽排序 + 修改标题）
+// 编辑章节（拖拽排序 + 修改标题 + 作者笔记）
 let dragSrcIndex = null;
 let existingPages = [];
 let newEditFiles = [];
@@ -674,6 +771,10 @@ async function showEdit(chNum) {
     let titleMatch = html.match(/<span class="chapter-title">(.*?)<\/span>/);
     if (titleMatch) document.getElementById("edit-chapter-title").value = titleMatch[1];
     else document.getElementById("edit-chapter-title").value = `Chapter ${chNum}`;
+    // 提取作者笔记（如果存在）
+    let noteMatch = html.match(/<div class="author-note">(.*?)<\/div>/);
+    if (noteMatch) document.getElementById("edit-author-note").value = noteMatch[1].replace(/<[^>]*>/g, '');
+    else document.getElementById("edit-author-note").value = "";
     const matches = [...html.matchAll(/src="\.\.\/([^"]+\.(png|jpg|jpeg|webp))"/gi)];
     existingPages = matches.map(m => ({ path: m[1], url: "https://renclinkcreaky.github.io/" + m[1], keep: true }));
     renderExistingPages();
@@ -711,6 +812,7 @@ async function saveEdit() {
   try {
     const chNum = editChNum;
     const newTitle = document.getElementById("edit-chapter-title").value.trim();
+    const authorNote = document.getElementById("edit-author-note").value.trim();
     const keptPages = existingPages.filter(p => p.keep);
     const allImagePaths = [];
     for (let i = 0; i < newEditFiles.length; i++) {
@@ -728,9 +830,22 @@ async function saveEdit() {
     setEditProgress(75, "Rebuilding chapter page...");
     const f = await apiGet(`comic/chapter${chNum}.html`);
     let html = atob(f.content.replace(/\n/g,""));
+    // 更新标题
     html = html.replace(/<span class="chapter-title">.*?<\/span>/, `<span class="chapter-title">${newTitle}</span>`);
     html = html.replace(/<title>.*?<\/title>/, `<title>${newTitle} — RENCLINKCREAKY</title>`);
     html = html.replace(/End of .*?<\/div>/, `End of ${newTitle}</div>`);
+    // 更新作者笔记
+    if (authorNote) {
+      const noteHtml = `<div class="author-note">${escapeHtml(authorNote)}</div>`;
+      if (html.includes('<div class="author-note">')) {
+        html = html.replace(/<div class="author-note">.*?<\/div>/, noteHtml);
+      } else {
+        html = html.replace(/<div class="chapter-nav" style="flex-direction:column; gap:8px; margin-bottom:20px;">[\s\S]*?<\/div>/, match => match + noteHtml);
+      }
+    } else {
+      html = html.replace(/<div class="author-note">.*?<\/div>/, '');
+    }
+    // 更新图片列表
     const newImgTags = finalPaths.map((p, i) => `    <img src="../${p}" alt="${newTitle} Page ${i+1}">`).join("\n");
     html = html.replace(/(<div class="pages"[^>]*>)([\s\S]*?)(<\/div>)/, `$1\n${newImgTags}\n$3`);
     const newPageArray = finalPaths.map(p => `"../${p}"`).join(",\n    ");
@@ -746,7 +861,7 @@ async function saveEdit() {
   btn.disabled = false; btn.textContent = "Save Changes";
 }
 
-// 站点管理函数
+// 站点管理函数（带进度提示）
 function addCharacter() { characters.push({ name: "新角色", image: "", desc: "角色简介" }); renderCharactersList(); }
 function removeCharacter(idx) { characters.splice(idx, 1); renderCharactersList(); }
 function renderCharactersList() {
@@ -777,13 +892,22 @@ async function uploadCharacterImage(idx) {
   const input = document.createElement("input"); input.type = "file"; input.accept = "image/*";
   input.onchange = async (e) => {
     const file = e.target.files[0]; if (!file) return;
-    const ext = file.name.split('.').pop();
-    const filename = `char_${Date.now()}.${ext}`;
-    const path = `images/${filename}`;
-    const uploadedPath = await uploadImage(file, path);
-    characters[idx].image = uploadedPath;
-    renderCharactersList();
-    showToast("角色图片上传成功", "success");
+    const container = document.getElementById(`characters-list`).children[idx];
+    const uploadBtn = container.querySelector(".preview-container .ch-edit-btn:first-child");
+    if (uploadBtn) { uploadBtn.disabled = true; uploadBtn.textContent = "上传中..."; }
+    try {
+      const ext = file.name.split('.').pop();
+      const filename = `char_${Date.now()}.${ext}`;
+      const path = `images/${filename}`;
+      const uploadedPath = await uploadImage(file, path);
+      characters[idx].image = uploadedPath;
+      renderCharactersList();
+      showToast("角色图片上传成功", "success");
+    } catch (err) {
+      showToast("上传失败：" + err.message, "error");
+    } finally {
+      if (uploadBtn) { uploadBtn.disabled = false; uploadBtn.textContent = "上传图片"; }
+    }
   };
   input.click();
 }
@@ -818,13 +942,22 @@ async function uploadGalleryImage(idx) {
   const input = document.createElement("input"); input.type = "file"; input.accept = "image/*";
   input.onchange = async (e) => {
     const file = e.target.files[0]; if (!file) return;
-    const ext = file.name.split('.').pop();
-    const filename = `gallery_${Date.now()}.${ext}`;
-    const path = `images/${filename}`;
-    const uploadedPath = await uploadImage(file, path);
-    galleryItems[idx].src = uploadedPath;
-    renderGalleryList();
-    showToast("画廊图片上传成功", "success");
+    const container = document.getElementById(`gallery-list`).children[idx];
+    const uploadBtn = container.querySelector(".preview-container .ch-edit-btn:first-child");
+    if (uploadBtn) { uploadBtn.disabled = true; uploadBtn.textContent = "上传中..."; }
+    try {
+      const ext = file.name.split('.').pop();
+      const filename = `gallery_${Date.now()}.${ext}`;
+      const path = `images/${filename}`;
+      const uploadedPath = await uploadImage(file, path);
+      galleryItems[idx].src = uploadedPath;
+      renderGalleryList();
+      showToast("画廊图片上传成功", "success");
+    } catch (err) {
+      showToast("上传失败：" + err.message, "error");
+    } finally {
+      if (uploadBtn) { uploadBtn.disabled = false; uploadBtn.textContent = "上传图片"; }
+    }
   };
   input.click();
 }
@@ -844,6 +977,12 @@ async function loadSiteContent() {
     if (latestThumbMatch) document.getElementById("latest-thumb").value = latestThumbMatch[1];
     let latestTextMatch = indexHtml.match(/<span id="latest-text">(.*?)<\/span>/);
     if (latestTextMatch) document.getElementById("latest-text").value = latestTextMatch[1];
+    
+    // 加载社交链接
+    let twitterMatch = indexHtml.match(/<a href="([^"]+)"[^>]*class="twitter"[^>]*>/);
+    if (twitterMatch) document.getElementById("social-twitter").value = twitterMatch[1];
+    let instaMatch = indexHtml.match(/<a href="([^"]+)"[^>]*class="instagram"[^>]*>/);
+    if (instaMatch) document.getElementById("social-instagram").value = instaMatch[1];
     
     const heroImg = document.getElementById("hero-image").value;
     const heroPreview = document.getElementById("hero-preview");
@@ -884,10 +1023,22 @@ async function saveSiteContent() {
     const latestLink = document.getElementById("latest-link").value.trim();
     const latestThumb = document.getElementById("latest-thumb").value.trim();
     const latestText = document.getElementById("latest-text").value.trim();
+    const twitter = document.getElementById("social-twitter").value.trim();
+    const instagram = document.getElementById("social-instagram").value.trim();
+    
     if (heroImg) indexHtml = indexHtml.replace(/<img src="[^"]+" alt="Renclinkcreaky Hero Image">/, `<img src="${heroImg}" alt="Renclinkcreaky Hero Image">`);
     if (latestLink) indexHtml = indexHtml.replace(/<a id="latest-link" href="[^"]+">/, `<a id="latest-link" href="${latestLink}">`);
     if (latestThumb) indexHtml = indexHtml.replace(/<img id="latest-thumb" src="[^"]+" alt="Latest Comic">/, `<img id="latest-thumb" src="${latestThumb}" alt="Latest Comic">`);
     if (latestText) indexHtml = indexHtml.replace(/<span id="latest-text">.*?<\/span>/, `<span id="latest-text">${latestText}</span>`);
+    
+    // 更新社交图标区域
+    const socialDiv = indexHtml.match(/<div class="socials">([\s\S]*?)<\/div>/)[0];
+    let newSocial = `<div class="socials">`;
+    if (twitter) newSocial += `<a href="${twitter}" class="twitter" target="_blank"><svg width="22" height="22" fill="currentColor" viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg></a>`;
+    if (instagram) newSocial += `<a href="${instagram}" class="instagram" target="_blank"><svg width="22" height="22" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 1.366.062 2.633.336 3.608 1.311.975.975 1.249 2.242 1.311 3.608.058 1.266.07 1.646.07 4.85s-.012 3.584-.07 4.85c-.062 1.366-.336 2.633-1.311 3.608-.975.975-2.242 1.249-3.608 1.311-1.266.058-1.646.07-4.85.07s-3.584-.012-4.85-.07c-1.366-.062-2.633-.336-3.608-1.311-.975-.975-1.249-2.242-1.311-3.608-.058-1.266-.07-1.646-.07-4.85s.012-3.584.07-4.85c.062-1.366.336-2.633 1.311-3.608.975-.975 2.242-1.249 3.608-1.311 1.266-.058 1.646-.07 4.85-.07zM12 0C8.741 0 8.332.014 7.052.072 5.77.13 4.867.33 4.056.839c-.821.514-1.518 1.22-2.031 2.041-.509.811-.709 1.714-.767 2.996C.014 8.332 0 8.741 0 12c0 3.259.014 3.668.072 4.948.058 1.282.258 2.185.767 2.996.513.821 1.22 1.527 2.031 2.041.811.509 1.714.709 2.996.767 1.28.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 1.282-.058 2.185-.258 2.996-.767.821-.514 1.518-1.22 2.031-2.041.509-.811.709-1.714.767-2.996.058-1.28.072-1.689.072-4.948 0-3.259-.014-3.668-.072-4.948-.058-1.282-.258-2.185-.767-2.996-.513-.821-1.22-1.518-2.041-2.031-.811-.509-1.714-.709-2.996-.767C15.668.014 15.259 0 12 0z"/><path d="M12 5.838a6.162 6.162 0 1 0 0 12.324 6.162 6.162 0 0 0 0-12.324zM12 16a4 4 0 1 1 0-8 4 4 0 0 1 0 8z"/><circle cx="18.406" cy="5.594" r="1.44"/></svg></a>`;
+    newSocial += `</div>`;
+    indexHtml = indexHtml.replace(/<div class="socials">[\s\S]*?<\/div>/, newSocial);
+    
     await apiPut("index.html", strToBase64(indexHtml), "Update homepage content", indexRes.sha);
     
     let charHtml = `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><title>Characters — RENCLINKCREAKY</title><link rel="stylesheet" href="/style.css"></head><body><div class="site-title"><a href="/index.html">RENCLINKCREAKY</a></div><div class="main-nav"><a href="/comic/chapter1.html">Comic</a><a href="/archive/index.html">Archive</a><a href="/gallery/index.html">Gallery</a><a href="/characters/index.html">Characters</a></div><div class="section-title" style="margin:40px 0 20px;">Characters</div><div class="characters-grid">${characters.map(c => `<div class="character-item"><img src="${c.image}" alt="${c.name}"><span>${c.name}</span><p style="font-size:12px; color:#aaa;">${c.desc}</p></div>`).join('')}</div><footer>© 2026 Renclinkcreaky. All rights reserved.</footer></body></html>`;
@@ -903,33 +1054,55 @@ async function saveSiteContent() {
 }
 
 async function uploadHeroImage() {
-  const input = document.createElement("input"); input.type = "file"; input.accept = "image/*";
+  const input = document.createElement("input");
+  input.type = "file";
+  input.accept = "image/*";
   input.onchange = async (e) => {
-    const file = e.target.files[0]; if (!file) return;
-    const ext = file.name.split('.').pop();
-    const filename = `hero_${Date.now()}.${ext}`;
-    const path = `images/${filename}`;
-    const uploadedPath = await uploadImage(file, path);
-    document.getElementById("hero-image").value = uploadedPath;
-    const preview = document.getElementById("hero-preview");
-    preview.src = uploadedPath; preview.style.display = "inline-block";
-    showToast("英雄图片已上传", "success");
+    const file = e.target.files[0];
+    if (!file) return;
+    const btn = document.querySelector("#hero-image + .preview-container .ch-edit-btn:first-child");
+    if (btn) { btn.disabled = true; btn.textContent = "上传中..."; }
+    try {
+      const ext = file.name.split('.').pop();
+      const filename = `hero_${Date.now()}.${ext}`;
+      const path = `images/${filename}`;
+      const uploadedPath = await uploadImage(file, path);
+      document.getElementById("hero-image").value = uploadedPath;
+      const preview = document.getElementById("hero-preview");
+      preview.src = uploadedPath; preview.style.display = "inline-block";
+      showToast("英雄图片上传成功", "success");
+    } catch (err) {
+      showToast("上传失败：" + err.message, "error");
+    } finally {
+      if (btn) { btn.disabled = false; btn.textContent = "上传图片"; }
+    }
   };
   input.click();
 }
 function clearHeroImage() { document.getElementById("hero-image").value = ""; document.getElementById("hero-preview").style.display = "none"; }
 async function uploadThumbImage() {
-  const input = document.createElement("input"); input.type = "file"; input.accept = "image/*";
+  const input = document.createElement("input");
+  input.type = "file";
+  input.accept = "image/*";
   input.onchange = async (e) => {
-    const file = e.target.files[0]; if (!file) return;
-    const ext = file.name.split('.').pop();
-    const filename = `thumb_${Date.now()}.${ext}`;
-    const path = `images/${filename}`;
-    const uploadedPath = await uploadImage(file, path);
-    document.getElementById("latest-thumb").value = uploadedPath;
-    const preview = document.getElementById("thumb-preview");
-    preview.src = uploadedPath; preview.style.display = "inline-block";
-    showToast("缩略图已上传", "success");
+    const file = e.target.files[0];
+    if (!file) return;
+    const btn = document.querySelector("#latest-thumb + .preview-container .ch-edit-btn:first-child");
+    if (btn) { btn.disabled = true; btn.textContent = "上传中..."; }
+    try {
+      const ext = file.name.split('.').pop();
+      const filename = `thumb_${Date.now()}.${ext}`;
+      const path = `images/${filename}`;
+      const uploadedPath = await uploadImage(file, path);
+      document.getElementById("latest-thumb").value = uploadedPath;
+      const preview = document.getElementById("thumb-preview");
+      preview.src = uploadedPath; preview.style.display = "inline-block";
+      showToast("缩略图上传成功", "success");
+    } catch (err) {
+      showToast("上传失败：" + err.message, "error");
+    } finally {
+      if (btn) { btn.disabled = false; btn.textContent = "上传图片"; }
+    }
   };
   input.click();
 }
