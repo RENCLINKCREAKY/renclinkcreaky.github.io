@@ -4,52 +4,66 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Archive - RENCLINKCREAKY</title>
-
 <link rel="stylesheet" href="/style.css">
-
 <style>
 .archive-list {
-  max-width:800px;
-  margin:0 auto 50px auto;
-  text-align:left;
+  max-width: 800px;
+  margin: 0 auto 50px auto;
+  text-align: left;
 }
-.archive-list a {
-  display:block;
-  padding:10px;
-  color:#f5c542;
-  text-decoration:none;
-  border-bottom:1px solid #444;
+.archive-item {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 12px;
+  border-bottom: 1px solid #444;
   transition: background 0.2s;
 }
-.archive-list a:hover {
-  background:#222;
+.archive-item:hover {
+  background: #222;
+}
+.archive-cover {
+  width: 60px;
+  height: 60px;
+  object-fit: cover;
+  border-radius: 4px;
+}
+.archive-info {
+  flex: 1;
+}
+.archive-title {
+  font-size: 18px;
+  font-weight: bold;
+  color: #f5c542;
+  text-decoration: none;
+}
+.archive-title:hover {
+  text-decoration: underline;
+}
+.archive-meta {
+  font-size: 12px;
+  color: #aaa;
 }
 </style>
 </head>
 <body>
-
 <div class="site-title"><a href="../index.html">RENCLINKCREAKY</a></div>
-
 <div class="main-nav">
-  <a id="comic-nav" href="../comic/chapter2.html">Comic</a>
+  <a href="../comic/chapter1.html">Comic</a>
   <a href="index.html">Archive</a>
   <a href="../gallery/index.html">Gallery</a>
   <a href="../characters/index.html">Characters</a>
 </div>
-
-<div class="socials">
-  <!-- ç¤¾äº¤å¾æ  -->
-</div>
-
 <div class="archive-list">
-  <a href="../comic/chapter1.html">Chapter 1</a>
-  <a href="../comic/chapter2.html">Chapter 2</a>
-  <!-- æ´å¤ç« è -->
 
-<a class="ch-item" href="https://renclinkcreaky.github.io/comic/chapter3.html">Chapter 3</a>
+  <div class="archive-item">
+    <img class="archive-cover" src="images/cover_ch1.png" alt="Cover of dgd">
+    <div class="archive-info">
+      <a class="archive-title" href="../comic/chapter1.html">Chapter 1: dgd</a>
+      <div class="archive-meta">1 pages</div>
+    </div>
+  </div>
 </div>
-
-<footer>Â© 2026 Renclinkcreaky. All rights reserved.</footer>
-
+<footer>© 2026 Renclinkcreaky. All rights reserved.</footer>
 </body>
 </html>
