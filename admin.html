@@ -2,40 +2,941 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>RENCLINKCREAKY</title>
-<link rel="stylesheet" href="/style.css">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin — RENCLINKCREAKY</title>
+<style>
+:root {
+  --accent: #e8153a;
+  --bg: #0e0e0e;
+  --surface: #1a1a1a;
+  --surface2: #242424;
+  --text: #f0f0f0;
+  --muted: #888;
+  --border: #2a2a2a;
+  --green: #1D9E75;
+  --yellow: #BA7517;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body { background:var(--bg); color:var(--text); font-family:system-ui,sans-serif; min-height:100vh; }
+
+/* ── Nav ── */
+nav { background:#000; border-bottom:2px solid var(--accent); height:52px; display:flex; align-items:center; justify-content:space-between; padding:0 24px; }
+.logo { font-size:18px; font-weight:700; letter-spacing:2px; color:#fff; }
+.logo span { color:var(--accent); }
+.nav-status { font-size:12px; color:var(--muted); }
+
+/* ── Screens ── */
+.screen { display:none; max-width:640px; margin:0 auto; padding:40px 20px 80px; }
+.screen.active { display:block; }
+
+/* ── Setup screen ── */
+.setup-card { background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:28px; }
+.setup-title { font-size:22px; font-weight:700; margin-bottom:8px; }
+.setup-sub { font-size:14px; color:var(--muted); line-height:1.7; margin-bottom:24px; }
+.steps { counter-reset:step; }
+.step { display:flex; gap:14px; margin-bottom:18px; align-items:flex-start; }
+.step-num { width:28px; height:28px; border-radius:50%; background:var(--accent); color:#fff; font-size:13px; font-weight:700; display:flex; align-items:center; justify-content:center; flex-shrink:0; margin-top:1px; }
+.step-body { flex:1; }
+.step-title { font-size:14px; font-weight:600; margin-bottom:4px; }
+.step-desc { font-size:13px; color:var(--muted); line-height:1.6; }
+.step-desc a { color:#5DCAA5; }
+.step-desc code { background:var(--surface2); padding:2px 6px; border-radius:4px; font-size:12px; color:#f0f0f0; }
+.token-input { width:100%; margin-top:16px; padding:12px 14px; background:var(--surface2); border:1px solid var(--border); border-radius:8px; color:var(--text); font-size:14px; font-family:monospace; outline:none; transition:border 0.2s; }
+.token-input:focus { border-color:var(--accent); }
+.token-input::placeholder { color:var(--muted); }
+.btn-primary { display:block; width:100%; margin-top:14px; padding:13px; background:var(--accent); color:#fff; border:none; border-radius:8px; font-size:15px; font-weight:700; cursor:pointer; letter-spacing:1px; transition:background 0.2s; }
+.btn-primary:hover { background:#c0102e; }
+.btn-primary:disabled { background:#555; cursor:not-allowed; }
+
+/* ── Main screen ── */
+.section-title { font-size:12px; font-weight:700; letter-spacing:2px; color:var(--muted); text-transform:uppercase; margin-bottom:16px; }
+.chapters-list { margin-bottom:32px; }
+.ch-row { display:flex; align-items:center; justify-content:space-between; padding:14px 16px; background:var(--surface); border:1px solid var(--border); border-radius:8px; margin-bottom:8px; }
+.ch-row-left { display:flex; align-items:center; gap:12px; }
+.ch-num-badge { background:var(--accent); color:#fff; font-size:12px; font-weight:700; padding:3px 9px; border-radius:4px; }
+.ch-row-title { font-size:14px; }
+.ch-row-pages { font-size:12px; color:var(--muted); }
+.ch-view-btn { font-size:12px; color:#5DCAA5; text-decoration:none; }
+.no-chapters { text-align:center; padding:32px; color:var(--muted); font-size:14px; background:var(--surface); border:1px dashed var(--border); border-radius:8px; }
+
+.btn-new { display:flex; align-items:center; justify-content:center; gap:8px; width:100%; padding:13px; background:transparent; border:1px solid var(--accent); color:var(--accent); border-radius:8px; font-size:15px; font-weight:700; cursor:pointer; transition:all 0.2s; }
+.btn-new:hover { background:rgba(232,21,58,0.08); }
+
+/* ── Upload screen ── */
+.field-label { font-size:13px; color:var(--muted); margin-bottom:6px; display:block; }
+.field-input { width:100%; padding:11px 14px; background:var(--surface); border:1px solid var(--border); border-radius:8px; color:var(--text); font-size:14px; outline:none; margin-bottom:20px; transition:border 0.2s; }
+.field-input:focus { border-color:var(--accent); }
+
+.drop-zone { border:2px dashed var(--border); border-radius:12px; padding:40px 20px; text-align:center; cursor:pointer; transition:all 0.2s; background:var(--surface); margin-bottom:20px; }
+.drop-zone:hover, .drop-zone.drag-over { border-color:var(--accent); background:rgba(232,21,58,0.04); }
+.drop-icon { font-size:32px; margin-bottom:10px; }
+.drop-title { font-size:15px; font-weight:600; margin-bottom:6px; }
+.drop-sub { font-size:13px; color:var(--muted); }
+.drop-sub span { color:var(--accent); cursor:pointer; }
+#file-input { display:none; }
+
+.pages-preview, .image-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(90px,1fr)); gap:8px; margin-bottom:20px; }
+.page-thumb { position:relative; aspect-ratio:2/3; border-radius:6px; overflow:hidden; background:var(--surface); border:1px solid var(--border); }
+.page-thumb img { width:100%; height:100%; object-fit:cover; }
+.page-thumb .pg-num { position:absolute; bottom:4px; left:4px; background:rgba(0,0,0,0.7); color:#fff; font-size:10px; padding:2px 5px; border-radius:3px; }
+.page-thumb .pg-del { position:absolute; top:4px; right:4px; background:var(--accent); color:#fff; border:none; border-radius:50%; width:20px; height:20px; font-size:12px; cursor:pointer; display:flex; align-items:center; justify-content:center; }
+
+.btn-row-2 { display:flex; gap:10px; }
+.btn-back { flex:0 0 auto; padding:13px 20px; background:var(--surface); border:1px solid var(--border); border-radius:8px; color:var(--muted); font-size:14px; cursor:pointer; transition:all 0.2s; }
+.btn-back:hover { color:var(--text); }
+
+/* ── Progress ── */
+.progress-wrap { display:none; margin-bottom:20px; }
+.progress-wrap.active { display:block; }
+.progress-label { font-size:13px; color:var(--muted); margin-bottom:8px; }
+.progress-bar { height:4px; background:var(--surface2); border-radius:2px; overflow:hidden; }
+.progress-fill { height:100%; background:var(--green); transition:width 0.3s; width:0%; }
+
+/* ── Toast ── */
+.toast { position:fixed; bottom:24px; left:50%; transform:translateX(-50%) translateY(80px); background:var(--surface); border:1px solid var(--border); border-radius:8px; padding:12px 20px; font-size:14px; opacity:0; transition:all 0.3s; z-index:999; white-space:nowrap; }
+.toast.show { transform:translateX(-50%) translateY(0); opacity:1; }
+.toast.success { border-color:var(--green); color:#5DCAA5; }
+.toast.error { border-color:var(--accent); color:#ff6b7a; }
+
+/* ── Token reset ── */
+.reset-link { font-size:12px; color:var(--muted); cursor:pointer; text-decoration:underline; }
+.reset-link:hover { color:var(--text); }
+
+/* ── Edit screen ── */
+.ch-row-actions { display:flex; gap:8px; align-items:center; }
+.ch-edit-btn { font-size:12px; color:var(--muted); background:var(--surface2); border:1px solid var(--border); border-radius:5px; padding:4px 10px; cursor:pointer; transition:all .2s; }
+.ch-edit-btn:hover { color:var(--text); border-color:var(--muted); }
+.existing-pages { display:grid; grid-template-columns:repeat(auto-fill,minmax(90px,1fr)); gap:8px; margin-bottom:16px; }
+.edit-info { font-size:13px; color:var(--muted); background:var(--surface); border-radius:8px; padding:12px 14px; margin-bottom:16px; line-height:1.6; }
+.edit-info b { color:var(--text); }
+.divider-label { font-size:11px; color:var(--muted); letter-spacing:2px; text-transform:uppercase; text-align:center; margin:16px 0; display:flex; align-items:center; gap:10px; }
+.divider-label::before,.divider-label::after { content:''; flex:1; height:1px; background:var(--border); }
+
+.image-preview { display:inline-block; width:60px; height:60px; object-fit:cover; border-radius:4px; margin-right:8px; vertical-align:middle; border:1px solid var(--border); }
+.preview-container { display:flex; align-items:center; gap:8px; margin-bottom:8px; flex-wrap:wrap; }
+</style>
 </head>
 <body>
 
-<div class="site-title"><a href="index.html">RENCLINKCREAKY</a></div>
-
-<div class="main-nav">
-  <a href="comic/chapter1.html">Comic</a>
-  <a href="archive/index.html">Archive</a>
-  <a href="gallery/index.html">Gallery</a>
-  <a href="characters/index.html">Characters</a>
-</div>
-
-<div class="socials">
-  <!-- 填入社交图标 SVG -->
-</div>
-
-<section class="hero">
-  <img src="images/hero.png" alt="Renclinkcreaky Hero Image">
-</section>
-
-<section class="latest-section">
-  <div class="latest-title">Latest Comic</div>
-  <div class="latest-comic">
-    <a id="latest-link" href="comic/chapter2.html">
-      <img id="latest-thumb" src="images/ch2_01.png" alt="Latest Comic">
-      <span id="latest-text">Chapter 2</span>
-    </a>
+<nav>
+  <div class="logo">RENCLINK<span>CREAKY</span> <span style="font-size:12px;color:var(--muted);font-weight:400;letter-spacing:0">/ Admin</span></div>
+  <div style="display:flex; gap:12px; align-items:center;">
+    <button class="ch-edit-btn" onclick="showScreen('screen-site')" style="background:#1D9E75; color:white;">站点管理</button>
+    <div class="nav-status" id="nav-status"></div>
   </div>
-</section>
+</nav>
 
-<footer>© 2026 Renclinkcreaky. All rights reserved.</footer>
+<!-- ===================== SETUP SCREEN ===================== -->
+<div class="screen active" id="screen-setup">
+  <div class="setup-card">
+    <div class="setup-title">One-time Setup</div>
+    <div class="setup-sub">You only need to do this once. After setup, you can upload manga chapters directly from this page with no coding.</div>
+    <div class="steps">
+      <div class="step"><div class="step-num">1</div><div class="step-body"><div class="step-title">Go to GitHub Token page</div><div class="step-desc">Click this link → <a href="https://github.com/settings/tokens/new" target="_blank">github.com/settings/tokens/new</a><br>Sign in if needed.</div></div></div>
+      <div class="step"><div class="step-num">2</div><div class="step-body"><div class="step-title">Fill in the form</div><div class="step-desc">• <b>Note:</b> type anything, e.g. <code>manga upload</code><br>• <b>Expiration:</b> choose <code>No expiration</code><br>• <b>Scopes:</b> tick only <code>repo</code></div></div></div>
+      <div class="step"><div class="step-num">3</div><div class="step-body"><div class="step-title">Click "Generate token" and copy it</div><div class="step-desc">It starts with <code>ghp_</code>. Copy it immediately — GitHub only shows it once!</div></div></div>
+      <div class="step"><div class="step-num">4</div><div class="step-body"><div class="step-title">Paste it below</div></div></div>
+    </div>
+    <input class="token-input" id="token-input" type="password" placeholder="Paste your token here (ghp_xxxxxxxx...)">
+    <button class="btn-primary" onclick="saveToken()">Save & Continue →</button>
+  </div>
+</div>
 
+<!-- ===================== MAIN SCREEN ===================== -->
+<div class="screen" id="screen-main">
+  <div class="section-title">Your Chapters</div>
+  <div class="chapters-list" id="chapters-list"><div class="no-chapters">Loading chapters...</div></div>
+  <button class="btn-new" onclick="showUpload()">+ Upload New Chapter</button>
+  <button class="btn-new" style="margin-top:12px;border-color:#5DCAA5;color:#5DCAA5;" onclick="batchUpgradeChapters()">🔄 统一所有章节模板</button>
+  <div style="margin-top:16px;text-align:center;"><span class="reset-link" onclick="resetToken()">Change token</span></div>
+</div>
+
+<!-- ===================== UPLOAD SCREEN ===================== -->
+<div class="screen" id="screen-upload">
+  <div class="section-title">New Chapter</div>
+  <label class="field-label">Chapter title (e.g. "Chapter 3 — The Storm")</label>
+  <input class="field-input" id="chapter-title-input" placeholder="Chapter 3 — The Storm" type="text">
+  <label class="field-label">Upload pages (images will be sorted by filename)</label>
+  <div class="drop-zone" id="drop-zone" onclick="document.getElementById('file-input').click()">
+    <div class="drop-icon">🖼</div><div class="drop-title">Drag & drop your pages here</div><div class="drop-sub">or <span>browse files</span> — JPG, PNG, WebP supported</div>
+  </div>
+  <input type="file" id="file-input" multiple accept="image/*">
+  <div class="pages-preview" id="pages-preview"></div>
+  <div class="progress-wrap" id="progress-wrap"><div class="progress-label" id="progress-label">Uploading...</div><div class="progress-bar"><div class="progress-fill" id="progress-fill"></div></div></div>
+  <div class="btn-row-2"><button class="btn-back" onclick="showMain()">← Back</button><button class="btn-primary" id="publish-btn" onclick="publish()" style="margin-top:0;flex:1">Publish Chapter</button></div>
+</div>
+
+<!-- ===================== SITE MANAGEMENT SCREEN ===================== -->
+<div class="screen" id="screen-site">
+  <div class="section-title">站点内容管理</div>
+  <div style="background:var(--surface); border-radius:12px; padding:20px; margin-bottom:20px;">
+    <div style="font-weight:bold; margin-bottom:12px;">🏠 主页设置</div>
+    <label class="field-label">英雄图片</label>
+    <div class="preview-container">
+      <img id="hero-preview" class="image-preview" style="display:none;">
+      <button class="ch-edit-btn" onclick="uploadHeroImage()">上传图片</button>
+      <button class="ch-edit-btn" onclick="clearHeroImage()" style="background:#a00;">删除图片</button>
+    </div>
+    <input class="field-input" id="hero-image" placeholder="images/hero.png">
+    <label class="field-label">最新章节链接</label>
+    <input class="field-input" id="latest-link" placeholder="comic/chapter2.html">
+    <label class="field-label">最新章节缩略图</label>
+    <div class="preview-container">
+      <img id="thumb-preview" class="image-preview" style="display:none;">
+      <button class="ch-edit-btn" onclick="uploadThumbImage()">上传图片</button>
+      <button class="ch-edit-btn" onclick="clearThumbImage()" style="background:#a00;">删除图片</button>
+    </div>
+    <input class="field-input" id="latest-thumb" placeholder="images/ch2_01.png">
+    <label class="field-label">最新章节显示文字</label>
+    <input class="field-input" id="latest-text" placeholder="Chapter 2">
+  </div>
+  <div style="background:var(--surface); border-radius:12px; padding:20px; margin-bottom:20px;">
+    <div style="font-weight:bold; margin-bottom:12px;">👥 角色列表</div>
+    <div id="characters-list"></div>
+    <button class="btn-new" style="margin-top:12px;" onclick="addCharacter()">+ 添加角色</button>
+  </div>
+  <div style="background:var(--surface); border-radius:12px; padding:20px; margin-bottom:20px;">
+    <div style="font-weight:bold; margin-bottom:12px;">🖼️ 画廊图片列表</div>
+    <div id="gallery-list"></div>
+    <button class="btn-new" style="margin-top:12px;" onclick="addGalleryItem()">+ 添加图片</button>
+  </div>
+  <button class="btn-primary" onclick="saveSiteContent()" style="margin-top:10px;">💾 保存所有站点内容</button>
+  <button class="btn-back" onclick="showMain()" style="margin-top:12px;">← 返回章节管理</button>
+</div>
+
+<!-- ===================== EDIT SCREEN ===================== -->
+<div class="screen" id="screen-edit">
+  <div class="section-title" id="edit-title-label">Edit Chapter</div>
+  <label class="field-label">Chapter Title</label>
+  <input class="field-input" id="edit-chapter-title" placeholder="Chapter title">
+  <div class="edit-info"><b>Current pages</b> — drag to reorder, click × to remove a page. New pages you add will be appended at the end.</div>
+  <div class="existing-pages" id="existing-pages"></div>
+  <div class="divider-label">Add new pages</div>
+  <div class="drop-zone" id="edit-drop-zone" onclick="document.getElementById('edit-file-input').click()">
+    <div class="drop-icon">🖼</div><div class="drop-title">Drag & drop new pages here</div><div class="drop-sub">or <span>browse files</span> — they'll be added after existing pages</div>
+  </div>
+  <input type="file" id="edit-file-input" multiple accept="image/*">
+  <div class="pages-preview" id="edit-pages-preview"></div>
+  <div class="progress-wrap" id="edit-progress-wrap"><div class="progress-label" id="edit-progress-label">Saving...</div><div class="progress-bar"><div class="progress-fill" id="edit-progress-fill"></div></div></div>
+  <div class="btn-row-2"><button class="btn-back" onclick="showMain()">← Back</button><button class="btn-primary" id="save-edit-btn" onclick="saveEdit()" style="margin-top:0;flex:1">Save Changes</button></div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const REPO = "RENCLINKCREAKY/renclinkcreaky.github.io";
+const API  = "https://api.github.com/repos/" + REPO + "/contents/";
+
+let uploadedFiles = [];
+let chapters = [];
+let characters = [];
+let galleryItems = [];
+
+function getToken() { return localStorage.getItem("rc_token") || ""; }
+function showToast(msg, type) { const t = document.getElementById("toast"); t.textContent = msg; t.className = "toast " + type + " show"; setTimeout(() => t.className = "toast", 3000); }
+function setProgress(pct, label) { document.getElementById("progress-fill").style.width = pct + "%"; document.getElementById("progress-label").textContent = label; }
+
+async function apiGet(path) {
+  const r = await fetch(API + path, { headers: { Authorization: "token " + getToken(), Accept: "application/vnd.github.v3+json" } });
+  if (!r.ok) throw new Error(r.status);
+  return r.json();
+}
+async function apiPut(path, content64, message, sha) {
+  const body = { message, content: content64 };
+  if (sha) body.sha = sha;
+  const r = await fetch(API + path, {
+    method: "PUT",
+    headers: { Authorization: "token " + getToken(), Accept: "application/vnd.github.v3+json", "Content-Type": "application/json" },
+    body: JSON.stringify(body)
+  });
+  if (!r.ok) { const e = await r.json(); throw new Error(e.message || r.status); }
+  return r.json();
+}
+async function getSha(path) {
+  try { const f = await apiGet(path); return f.sha; } catch { return null; }
+}
+function toBase64(dataUrl) { return dataUrl.split(",")[1]; }
+function strToBase64(str) { return btoa(unescape(encodeURIComponent(str))); }
+async function uploadImage(file, targetPath) {
+  const reader = new FileReader();
+  const dataUrl = await new Promise((resolve) => { reader.onload = e => resolve(e.target.result); reader.readAsDataURL(file); });
+  const sha = await getSha(targetPath);
+  await apiPut(targetPath, toBase64(dataUrl), `Upload ${targetPath}`, sha);
+  return targetPath;
+}
+
+function saveToken() {
+  const t = document.getElementById("token-input").value.trim();
+  if (!t.startsWith("ghp_") && !t.startsWith("github_pat_")) { showToast("That doesn't look like a valid token", "error"); return; }
+  localStorage.setItem("rc_token", t);
+  showMain();
+}
+function resetToken() { localStorage.removeItem("rc_token"); showScreen("screen-setup"); }
+
+function showScreen(id) {
+  document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"));
+  document.getElementById(id).classList.add("active");
+  if (id === "screen-site") loadSiteContent();
+}
+function showMain() { showScreen("screen-main"); loadChapters(); }
+function showUpload() { uploadedFiles = []; document.getElementById("pages-preview").innerHTML = ""; document.getElementById("chapter-title-input").value = ""; document.getElementById("progress-wrap").classList.remove("active"); showScreen("screen-upload"); }
+
+async function loadChapters() {
+  const list = document.getElementById("chapters-list");
+  list.innerHTML = '<div class="no-chapters">Loading...</div>';
+  try {
+    const files = await apiGet("comic");
+    chapters = files.filter(f => f.name.startsWith("chapter") && f.name.endsWith(".html")).sort((a,b) => a.name.localeCompare(b.name, undefined, {numeric:true}));
+    if (chapters.length === 0) { list.innerHTML = '<div class="no-chapters">No chapters yet — upload your first one!</div>'; return; }
+    list.innerHTML = chapters.map((ch) => {
+      const num = ch.name.replace("chapter","").replace(".html","");
+      return `<div class="ch-row"><div class="ch-row-left"><span class="ch-num-badge">Ch.${num}</span><span class="ch-row-title">Chapter ${num}</span></div><div class="ch-row-actions"><button class="ch-edit-btn" onclick="showEdit(${num})">Edit ✎</button><button class="ch-edit-btn" style="background:#a00;border-color:#a00;" onclick="deleteChapter(${num})">Delete</button><a class="ch-view-btn" href="https://renclinkcreaky.github.io/comic/${ch.name}" target="_blank">View →</a></div></div>`;
+    }).join("");
+  } catch(e) { list.innerHTML = '<div class="no-chapters">Could not load chapters — check your token.</div>'; }
+}
+
+document.getElementById("file-input").addEventListener("change", e => handleFiles(e.target.files));
+const dz = document.getElementById("drop-zone");
+dz.addEventListener("dragover", e => { e.preventDefault(); dz.classList.add("drag-over"); });
+dz.addEventListener("dragleave", () => dz.classList.remove("drag-over"));
+dz.addEventListener("drop", e => { e.preventDefault(); dz.classList.remove("drag-over"); handleFiles(e.dataTransfer.files); });
+
+function handleFiles(files) {
+  const imgs = Array.from(files).filter(f => f.type.startsWith("image/")).sort((a,b) => a.name.localeCompare(b.name, undefined, {numeric:true}));
+  uploadedFiles = [];
+  document.getElementById("pages-preview").innerHTML = "";
+  let loaded = 0;
+  imgs.forEach((file, i) => {
+    const reader = new FileReader();
+    reader.onload = e => { uploadedFiles[i] = { name: file.name, dataUrl: e.target.result, file }; loaded++; if (loaded === imgs.length) renderPreviews(); };
+    reader.readAsDataURL(file);
+  });
+}
+function renderPreviews() {
+  const wrap = document.getElementById("pages-preview");
+  wrap.innerHTML = uploadedFiles.map((f,i) => `<div class="page-thumb"><img src="${f.dataUrl}"><span class="pg-num">${i+1}</span><button class="pg-del" onclick="removePage(${i})">×</button></div>`).join("");
+}
+function removePage(i) { uploadedFiles.splice(i,1); renderPreviews(); }
+
+// 生成章节HTML（带顶部/底部导航）
+function generateChapterHTML(title, chNum, imageNames, prevLink, prevDisabled, prevLabel, nextLink, nextDisabled, nextLabel) {
+  const imgTags = imageNames.map((img, i) => `    <img src="../${img.path}" alt="${title} Page ${i+1}">`).join("\n");
+  const pageArray = imageNames.map(img => `"../${img.path}"`).join(",\n    ");
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>${title} — RENCLINKCREAKY</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--accent:#e8153a;--bg:#111;--nav-bg:#000;--surface:#1c1c1c;--surface2:#262626;--text:#f0f0f0;--muted:#777;--border:#2a2a2a;}
+*{margin:0;padding:0;box-sizing:border-box;}html{scroll-behavior:smooth;}
+body{background:var(--bg);color:var(--text);font-family:'Noto Sans TC',sans-serif;min-height:100vh;}
+.topbar{background:var(--nav-bg);border-bottom:1px solid var(--border);height:52px;display:flex;align-items:center;justify-content:space-between;padding:0 16px;gap:12px;position:sticky;top:0;z-index:50;}
+.topbar-left{display:flex;align-items:center;gap:12px;}
+.back-btn{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--muted);text-decoration:none;transition:color .2s;}
+.back-btn:hover{color:var(--text);}
+.chapter-title{font-size:14px;font-weight:500;}
+.topbar-right{display:flex;align-items:center;gap:8px;}
+.view-toggle{display:flex;background:var(--surface);border-radius:6px;overflow:hidden;border:1px solid var(--border);}
+.view-btn{padding:5px 12px;font-size:12px;cursor:pointer;border:none;background:transparent;color:var(--muted);transition:all .2s;}
+.view-btn.active{background:var(--surface2);color:var(--text);}
+.fs-btn{padding:5px 10px;background:transparent;border:1px solid var(--border);border-radius:6px;color:var(--muted);cursor:pointer;font-size:13px;}
+.fs-btn:hover{color:var(--text);}
+.progress-bar{height:2px;background:var(--border);}
+.progress-fill{height:100%;background:var(--accent);transition:width .3s;}
+.page-count{font-size:12px;color:var(--muted);white-space:nowrap;}
+#scroll-view .pages{display:flex;flex-direction:column;align-items:center;}
+#scroll-view .pages img{width:100%;max-width:800px;display:block;}
+#page-view{display:none;}
+#page-view .page-container{display:flex;justify-content:center;min-height:calc(100vh - 56px);cursor:pointer;}
+#page-view .page-container img{width:100%;max-width:800px;display:block;}
+.pnav{display:flex;max-width:800px;margin:0 auto;padding:16px 20px;gap:12px;}
+.pnav-btn{flex:1;padding:11px;background:var(--surface);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:14px;cursor:pointer;transition:background .2s;font-family:inherit;}
+.pnav-btn:hover{background:var(--surface2);}
+.pnav-btn:disabled{opacity:.25;cursor:default;}
+.key-hint{text-align:center;font-size:11px;color:var(--muted);padding:0 0 12px;}
+.key-hint span{background:var(--surface);border:1px solid var(--border);border-radius:3px;padding:1px 6px;margin:0 2px;font-size:11px;}
+.chapter-nav{max-width:800px;margin:0 auto;display:flex;padding:24px 20px 12px;gap:12px;}
+.cnav-btn{flex:1;padding:13px;background:var(--surface);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:14px;cursor:pointer;text-align:center;transition:background .2s;text-decoration:none;display:block;}
+.cnav-btn:hover{background:var(--surface2);}
+.cnav-btn.disabled{opacity:.3;pointer-events:none;}
+.cnav-btn small{display:block;font-size:11px;color:var(--muted);margin-top:2px;}
+.divider{max-width:800px;margin:12px auto;border:none;border-top:1px solid var(--border);}
+.reactions{max-width:800px;margin:0 auto;padding:20px 20px 0;display:flex;align-items:center;gap:12px;}
+.like-btn{display:flex;align-items:center;gap:6px;padding:8px 16px;background:var(--surface);border:1px solid var(--border);border-radius:20px;cursor:pointer;font-size:14px;color:var(--muted);transition:all .2s;font-family:inherit;}
+.like-btn:hover{border-color:var(--accent);color:var(--accent);}
+.like-btn.liked{background:rgba(232,21,58,.1);border-color:var(--accent);color:var(--accent);}
+.rss-link{font-size:12px;color:var(--muted);text-decoration:none;display:flex;align-items:center;gap:5px;margin-left:auto;}
+.rss-link:hover{color:#f90;}
+.comments-wrap{max-width:800px;margin:0 auto;padding:28px 20px 60px;}
+.comments-title{font-size:13px;font-weight:700;letter-spacing:2px;color:var(--muted);text-transform:uppercase;padding-bottom:14px;border-bottom:1px solid var(--border);margin-bottom:20px;}
+.comments-note{font-size:13px;color:var(--muted);line-height:1.7;background:var(--surface);border-radius:8px;padding:14px 16px;margin-bottom:20px;}
+.end-card{text-align:center;padding:36px 20px 28px;color:var(--muted);font-size:14px;}
+.end-line{display:flex;align-items:center;gap:12px;justify-content:center;}
+.end-line::before,.end-line::after{content:'';flex:1;max-width:80px;height:1px;background:var(--border);}
+@media(max-width:600px){.chapter-title,.key-hint{display:none;}}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div class="topbar-left">
+    <a class="back-btn" href="https://renclinkcreaky.github.io/archive/index.html">
+      <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>Archive
+    </a>
+    <span class="chapter-title">${title}</span>
+  </div>
+  <div class="topbar-right">
+    <span class="page-count" id="pc"></span>
+    <div class="view-toggle">
+      <button class="view-btn active" id="bs" onclick="sv('scroll')">Scroll</button>
+      <button class="view-btn" id="bp" onclick="sv('page')">Page</button>
+    </div>
+    <button class="fs-btn" onclick="toggleFS()">&#x26F6;</button>
+  </div>
+</div>
+<div class="progress-bar"><div class="progress-fill" id="pf" style="width:0%"></div></div>
+<div class="chapter-nav" style="flex-direction:column; gap:8px; margin-bottom:20px;">
+  <div class="key-hint" style="padding:0;">Use ←→ arrow keys or click image</div>
+  <div style="display:flex; justify-content:center; gap:12px;">
+    <a class="cnav-btn ${prevDisabled}" href="${prevLink}" style="flex:0 0 auto;">← Previous</a>
+    <span class="cnav-btn" style="background:transparent; cursor:default;">${title}</span>
+    <a class="cnav-btn ${nextDisabled}" href="${nextLink}" style="flex:0 0 auto;">Next →</a>
+    <span class="cnav-btn" style="background:transparent; cursor:default;">${nextLabel}</span>
+  </div>
+</div>
+<div id="scroll-view"><div class="pages">
+${imgTags}
+</div></div>
+<div id="page-view">
+  <div class="page-container" id="pgc" onclick="np()"><img id="pgi" src="" alt=""></div>
+  <div class="pnav"><button class="pnav-btn" id="pprev" onclick="event.stopPropagation();pp()">&#8592; Prev</button><button class="pnav-btn" id="pnext" onclick="event.stopPropagation();np()">Next &#8594;</button></div>
+  <div class="key-hint">Use <span>&#8592;</span><span>&#8594;</span> arrow keys or click image</div>
+</div>
+<div class="chapter-nav" style="flex-direction:column; gap:8px; margin-top:20px;">
+  <div class="key-hint" style="padding:0;">Use ←→ arrow keys or click image</div>
+  <div style="display:flex; justify-content:center; gap:12px;">
+    <a class="cnav-btn ${prevDisabled}" href="${prevLink}" style="flex:0 0 auto;">← Previous</a>
+    <span class="cnav-btn" style="background:transparent; cursor:default;">${title}</span>
+    <a class="cnav-btn ${nextDisabled}" href="${nextLink}" style="flex:0 0 auto;">Next →</a>
+    <span class="cnav-btn" style="background:transparent; cursor:default;">${nextLabel}</span>
+  </div>
+</div>
+<div class="end-card"><div class="end-line">End of ${title}</div></div>
+<hr class="divider">
+<div class="reactions">
+  <button class="like-btn" id="lb" onclick="tl()"><span id="li">&#9825;</span><span id="lc">Like this chapter</span></button>
+  <a class="rss-link" href="https://renclinkcreaky.github.io/rss.xml" target="_blank"><svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24"><circle cx="6" cy="18" r="2"/><path d="M4 4a16 16 0 0116 16M4 11a9 9 0 019 9"/></svg>Subscribe via RSS</a>
+</div>
+<div class="comments-wrap">
+  <div class="comments-title">Comments</div>
+  <div class="comments-note">Comments need a free GitHub account. No account? Reach out on social media!</div>
+  <script src="https://utteranc.es/client.js" repo="RENCLINKCREAKY/renclinkcreaky.github.io" issue-term="pathname" theme="github-dark" crossorigin="anonymous" async><\/script>
+</div>
+<script>
+const P=[${pageArray}];
+const K="lk_ch${chNum}";
+let cp=0,vm="scroll";
+function sv(m){vm=m;document.getElementById("scroll-view").style.display=m==="scroll"?"block":"none";document.getElementById("page-view").style.display=m==="page"?"block":"none";document.getElementById("bs").classList.toggle("active",m==="scroll");document.getElementById("bp").classList.toggle("active",m==="page");if(m==="page"){cp=0;sp(0);}up();}
+function sp(i){cp=Math.max(0,Math.min(P.length-1,i));document.getElementById("pgi").src=P[cp];document.getElementById("pprev").disabled=cp===0;document.getElementById("pnext").disabled=cp===P.length-1;document.getElementById("pc").textContent=(cp+1)+" / "+P.length;window.scrollTo(0,0);up();}
+function np(){if(cp<P.length-1)sp(cp+1);}function pp(){if(cp>0)sp(cp-1);}
+document.addEventListener("keydown",function(e){if(vm!=="page")return;if(e.key==="ArrowRight"||e.key==="ArrowLeft"||e.key==="ArrowDown"||e.key==="ArrowUp")e.preventDefault();if(e.key==="ArrowRight"||e.key==="ArrowDown")np();else if(e.key==="ArrowLeft"||e.key==="ArrowUp")pp();});
+let tx=0;document.addEventListener("touchstart",e=>{tx=e.touches[0].clientX;});document.addEventListener("touchend",e=>{if(vm!=="page")return;const d=tx-e.changedTouches[0].clientX;if(Math.abs(d)>50){d>0?np():pp();}});
+function up(){if(vm==="scroll"){const p=(window.scrollY/(document.body.scrollHeight-window.innerHeight))*100;document.getElementById("pf").style.width=Math.min(p,100)+"%";document.getElementById("pc").textContent=Math.ceil((p/100)*P.length)+" / "+P.length;}else{document.getElementById("pf").style.width=((cp+1)/P.length*100)+"%";}}
+window.addEventListener("scroll",up);up();
+function toggleFS(){if(!document.fullscreenElement)document.documentElement.requestFullscreen();else document.exitFullscreen();}
+function tl(){const l=localStorage.getItem(K)==="1";if(l){localStorage.removeItem(K);document.getElementById("lb").classList.remove("liked");document.getElementById("li").textContent="\\u2665\\u0338";document.getElementById("lc").textContent="Like this chapter";}else{localStorage.setItem(K,"1");document.getElementById("lb").classList.add("liked");document.getElementById("li").textContent="\\u2665";document.getElementById("lc").textContent="Liked!";}}
+if(localStorage.getItem(K)==="1"){document.getElementById("lb").classList.add("liked");document.getElementById("li").textContent="\\u2665";document.getElementById("lc").textContent="Liked!";}
+document.getElementById("pc").textContent="1 / "+P.length;
+<\/script>
+</body>
+</html>`;
+}
+
+async function publish() {
+  const title = document.getElementById("chapter-title-input").value.trim();
+  if (!title) { showToast("Please enter a chapter title", "error"); return; }
+  if (uploadedFiles.length === 0) { showToast("Please add at least one page", "error"); return; }
+
+  const btn = document.getElementById("publish-btn");
+  btn.disabled = true; btn.textContent = "Publishing...";
+  document.getElementById("progress-wrap").classList.add("active");
+
+  try {
+    const chNum = chapters.length + 1;
+    const prevNum = chNum - 1;
+    const nextNum = chNum + 1;
+    const prevLink = chNum > 1 ? `https://renclinkcreaky.github.io/comic/chapter${prevNum}.html` : "#";
+    const prevDisabled = chNum === 1 ? "disabled" : "";
+    const prevLabel = chNum > 1 ? `Chapter ${prevNum}` : "No previous chapter";
+    const nextLink = "#";
+    const nextDisabled = "disabled";
+    const nextLabel = "Coming soon";
+
+    const imageNames = [];
+    for (let i = 0; i < uploadedFiles.length; i++) {
+      const f = uploadedFiles[i];
+      const ext = f.name.split(".").pop().toLowerCase();
+      const paddedI = String(i+1).padStart(2,"0");
+      const imgPath = `images/ch${chNum}_${paddedI}.${ext}`;
+      imageNames.push({ path: imgPath });
+      setProgress(Math.round((i / uploadedFiles.length) * 70), `Uploading page ${i+1} of ${uploadedFiles.length}...`);
+      const sha = await getSha(imgPath);
+      await apiPut(imgPath, toBase64(f.dataUrl), `Add chapter ${chNum} page ${i+1}`, sha);
+    }
+
+    setProgress(80, "Generating chapter page...");
+    const chapterHTML = generateChapterHTML(title, chNum, imageNames, prevLink, prevDisabled, prevLabel, nextLink, nextDisabled, nextLabel);
+    const chPath = `comic/chapter${chNum}.html`;
+    const sha = await getSha(chPath);
+    await apiPut(chPath, strToBase64(chapterHTML), `Publish ${title}`, sha);
+
+    setProgress(90, "Updating archive...");
+    await updateArchive(chNum, title);
+
+    setProgress(95, "Updating RSS...");
+    await updateRSS(chNum, title);
+
+    setProgress(100, "Done!");
+    showToast("Chapter published!", "success");
+    setTimeout(() => { showMain(); }, 1500);
+  } catch(e) {
+    showToast("Error: " + e.message, "error");
+    console.error(e);
+  }
+  btn.disabled = false; btn.textContent = "Publish Chapter";
+}
+
+async function updateArchive(chNum, title) {
+  try {
+    const f = await apiGet("archive/index.html");
+    let html = atob(f.content.replace(/\n/g,""));
+    const newItem = `\n<a class="ch-item" href="https://renclinkcreaky.github.io/comic/chapter${chNum}.html">Chapter ${chNum}</a>`;
+    if (html.includes("</ul>")) html = html.replace("</ul>", newItem + "\n</ul>");
+    else if (html.includes("</div>")) html = html.replace(/<\/div>(?![\s\S]*<\/div>)/, newItem + "\n</div>");
+    else html += newItem;
+    await apiPut("archive/index.html", strToBase64(html), `Add chapter ${chNum} to archive`, f.sha);
+  } catch(e) { console.warn("Archive update failed:", e); }
+}
+
+async function updateRSS(chNum, title) {
+  try {
+    const now = new Date().toUTCString();
+    const newItem = `\n    <item>\n      <title>${title}</title>\n      <link>https://renclinkcreaky.github.io/comic/chapter${chNum}.html</link>\n      <guid>https://renclinkcreaky.github.io/comic/chapter${chNum}.html</guid>\n      <description>${title} is now live!</description>\n      <pubDate>${now}</pubDate>\n    </item>`;
+    let rss;
+    try {
+      const f = await apiGet("rss.xml");
+      let xml = atob(f.content.replace(/\n/g,""));
+      xml = xml.replace("<channel>", "<channel>" + newItem);
+      await apiPut("rss.xml", strToBase64(xml), `Add ${title} to RSS`, f.sha);
+    } catch {
+      const xml = `<?xml version="1.0" encoding="UTF-8"?>\n<rss version="2.0">\n  <channel>\n    <title>RENCLINKCREAKY</title>\n    <link>https://renclinkcreaky.github.io</link>\n    <description>Latest chapters</description>${newItem}\n  </channel>\n</rss>`;
+      await apiPut("rss.xml", strToBase64(xml), `Create RSS with ${title}`, null);
+    }
+  } catch(e) { console.warn("RSS update failed:", e); }
+}
+
+// 删除章节
+async function deleteChapter(chNum) {
+  if (!confirm(`⚠️ 确定要永久删除 Chapter ${chNum} 及其所有图片吗？此操作不可撤销。`)) return;
+  const btn = document.querySelector(`button[onclick="deleteChapter(${chNum})"]`);
+  if (btn) btn.disabled = true;
+  try {
+    const f = await apiGet(`comic/chapter${chNum}.html`);
+    const html = atob(f.content.replace(/\n/g,""));
+    const matches = [...html.matchAll(/src="\.\.\/(images\/ch${chNum}_[^"]+)"/gi)];
+    const imagePaths = matches.map(m => m[1]);
+    for (let imgPath of imagePaths) {
+      const sha = await getSha(imgPath);
+      if (sha) {
+        await fetch(API + imgPath, {
+          method: "DELETE",
+          headers: { Authorization: "token " + getToken(), Accept: "application/vnd.github.v3+json" },
+          body: JSON.stringify({ message: `Delete image for ch${chNum}`, sha })
+        });
+      }
+    }
+    const htmlSha = await getSha(`comic/chapter${chNum}.html`);
+    if (htmlSha) {
+      await fetch(API + `comic/chapter${chNum}.html`, {
+        method: "DELETE",
+        headers: { Authorization: "token " + getToken(), Accept: "application/vnd.github.v3+json" },
+        body: JSON.stringify({ message: `Delete chapter ${chNum}`, sha: htmlSha })
+      });
+    }
+    showToast(`Chapter ${chNum} 已删除`, "success");
+    loadChapters();
+  } catch(e) {
+    showToast("删除失败: " + e.message, "error");
+    console.error(e);
+  } finally {
+    if (btn) btn.disabled = false;
+  }
+}
+
+// 批量升级
+async function upgradeChapter(chNum) {
+  console.log(`升级 Chapter ${chNum}...`);
+  try {
+    const oldFile = await apiGet(`comic/chapter${chNum}.html`);
+    let oldHtml = atob(oldFile.content.replace(/\n/g, ""));
+    let titleMatch = oldHtml.match(/<span class="chapter-title">(.*?)<\/span>/);
+    let title = titleMatch ? titleMatch[1] : `Chapter ${chNum}`;
+    if (!titleMatch) {
+      titleMatch = oldHtml.match(/<title>(.*?)<\/title>/);
+      if (titleMatch) title = titleMatch[1].replace(/ — RENCLINKCREAKY/, '');
+    }
+    const imgMatches = [...oldHtml.matchAll(/src="\.\.\/([^"]+\.(png|jpg|jpeg|webp))"/gi)];
+    const imagePaths = imgMatches.map(m => m[1]);
+    if (imagePaths.length === 0) {
+      console.warn(`Chapter ${chNum} 没有找到图片，跳过升级`);
+      return false;
+    }
+    const allChapters = chapters.map(c => parseInt(c.name.match(/\d+/)[0])).sort((a,b)=>a-b);
+    const idx = allChapters.indexOf(chNum);
+    const prevNum = idx > 0 ? allChapters[idx-1] : null;
+    const nextNum = idx < allChapters.length-1 ? allChapters[idx+1] : null;
+    const prevLink = prevNum ? `https://renclinkcreaky.github.io/comic/chapter${prevNum}.html` : "#";
+    const prevDisabled = !prevNum ? "disabled" : "";
+    const prevLabel = prevNum ? `Chapter ${prevNum}` : "No previous chapter";
+    const nextLink = nextNum ? `https://renclinkcreaky.github.io/comic/chapter${nextNum}.html` : "#";
+    const nextDisabled = !nextNum ? "disabled" : "";
+    const nextLabel = nextNum ? `Chapter ${nextNum}` : "Coming soon";
+
+    const imageNames = imagePaths.map(p => ({ path: p }));
+    const newHtml = generateChapterHTML(title, chNum, imageNames, prevLink, prevDisabled, prevLabel, nextLink, nextDisabled, nextLabel);
+    const newSha = await getSha(`comic/chapter${chNum}.html`);
+    await apiPut(`comic/chapter${chNum}.html`, strToBase64(newHtml), `统一章节模板: Chapter ${chNum}`, newSha);
+    console.log(`Chapter ${chNum} 升级成功`);
+    return true;
+  } catch (e) {
+    console.error(`升级 Chapter ${chNum} 失败:`, e);
+    return false;
+  }
+}
+
+async function batchUpgradeChapters() {
+  if (!chapters || chapters.length === 0) await loadChapters();
+  if (!confirm("⚠️ 此操作会将所有章节页面统一为最新模板，保留原有图片和标题。\n如果章节已经是最新模板，不会产生不良影响。\n\n确定要继续吗？")) return;
+  const btn = document.createElement("button");
+  btn.textContent = "升级中，请稍候...";
+  btn.disabled = true;
+  btn.style.cssText = "position:fixed;bottom:20px;right:20px;z-index:9999;background:#e8153a;color:white;border:none;border-radius:8px;padding:10px 16px;font-weight:bold;";
+  document.body.appendChild(btn);
+  let successCount = 0, failCount = 0;
+  for (let ch of chapters) {
+    const chNum = parseInt(ch.name.match(/\d+/)[0]);
+    const ok = await upgradeChapter(chNum);
+    if (ok) successCount++; else failCount++;
+    btn.textContent = `升级中... 已完成 ${successCount+failCount} / ${chapters.length}`;
+  }
+  btn.textContent = `升级完成！成功: ${successCount}，失败: ${failCount}`;
+  setTimeout(() => btn.remove(), 3000);
+  showToast(`升级完成！成功: ${successCount}，失败: ${failCount}`, successCount === chapters.length ? "success" : "error");
+  loadChapters();
+}
+
+// 编辑章节（拖拽排序 + 修改标题）
+let dragSrcIndex = null;
+let existingPages = [];
+let newEditFiles = [];
+let editChNum = null;
+
+function handleDragStart(e, idx) { dragSrcIndex = idx; e.dataTransfer.effectAllowed = 'move'; e.dataTransfer.setData('text/plain', idx); }
+function handleDragOver(e) { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; }
+function handleDrop(e, targetIdx) {
+  e.preventDefault();
+  if (dragSrcIndex === null || dragSrcIndex === targetIdx) return;
+  const dragged = existingPages[dragSrcIndex];
+  existingPages.splice(dragSrcIndex, 1);
+  existingPages.splice(targetIdx, 0, dragged);
+  dragSrcIndex = null;
+  renderExistingPages();
+  showToast("顺序已更改，点击「保存更改」生效", "success");
+}
+function renderExistingPages() {
+  const wrap = document.getElementById("existing-pages");
+  if (!existingPages.length) { wrap.innerHTML = '<div style="color:var(--muted);font-size:13px;grid-column:1/-1">No pages yet.</div>'; return; }
+  wrap.innerHTML = existingPages.filter(p => p.keep !== false).map((p, i) => `<div class="page-thumb" draggable="true" ondragstart="handleDragStart(event, ${i})" ondragover="handleDragOver(event)" ondrop="handleDrop(event, ${i})"><img src="${p.url}" onerror="this.style.background='#333'"><span class="pg-num">${i+1}</span><button class="pg-del" onclick="removeExisting(${i})">×</button></div>`).join("");
+}
+function removeExisting(i) { existingPages[i].keep = false; renderExistingPages(); showToast("Page removed — click Save Changes to apply", "success"); }
+async function showEdit(chNum) {
+  editChNum = chNum;
+  newEditFiles = [];
+  document.getElementById("edit-pages-preview").innerHTML = "";
+  document.getElementById("edit-progress-wrap").classList.remove("active");
+  document.getElementById("edit-title-label").textContent = "Edit Chapter " + chNum;
+  showScreen("screen-edit");
+  try {
+    const f = await apiGet(`comic/chapter${chNum}.html`);
+    const html = atob(f.content.replace(/\n/g,""));
+    let titleMatch = html.match(/<span class="chapter-title">(.*?)<\/span>/);
+    if (titleMatch) document.getElementById("edit-chapter-title").value = titleMatch[1];
+    else document.getElementById("edit-chapter-title").value = `Chapter ${chNum}`;
+    const matches = [...html.matchAll(/src="\.\.\/([^"]+\.(png|jpg|jpeg|webp))"/gi)];
+    existingPages = matches.map(m => ({ path: m[1], url: "https://renclinkcreaky.github.io/" + m[1], keep: true }));
+    renderExistingPages();
+  } catch(e) {
+    document.getElementById("existing-pages").innerHTML = '<div style="color:var(--muted);font-size:13px;">Could not load pages: ' + e.message + '</div>';
+  }
+}
+const edz = document.getElementById("edit-drop-zone");
+edz.addEventListener("dragover", e => { e.preventDefault(); edz.classList.add("drag-over"); });
+edz.addEventListener("dragleave", () => edz.classList.remove("drag-over"));
+edz.addEventListener("drop", e => { e.preventDefault(); edz.classList.remove("drag-over"); handleEditFiles(e.dataTransfer.files); });
+document.getElementById("edit-file-input").addEventListener("change", e => handleEditFiles(e.target.files));
+function handleEditFiles(files) {
+  const imgs = Array.from(files).filter(f => f.type.startsWith("image/")).sort((a,b) => a.name.localeCompare(b.name, undefined, {numeric:true}));
+  newEditFiles = [];
+  document.getElementById("edit-pages-preview").innerHTML = "";
+  let loaded = 0;
+  imgs.forEach((file, i) => {
+    const reader = new FileReader();
+    reader.onload = e => { newEditFiles[i] = { name: file.name, dataUrl: e.target.result }; loaded++; if (loaded === imgs.length) renderEditPreviews(); };
+    reader.readAsDataURL(file);
+  });
+}
+function renderEditPreviews() {
+  const wrap = document.getElementById("edit-pages-preview");
+  const offset = existingPages.filter(p => p.keep).length;
+  wrap.innerHTML = newEditFiles.map((f,i) => `<div class="page-thumb"><img src="${f.dataUrl}"><span class="pg-num">${offset + i + 1}</span><button class="pg-del" onclick="removeNewEdit(${i})">×</button></div>`).join("");
+}
+function removeNewEdit(i) { newEditFiles.splice(i,1); renderEditPreviews(); }
+function setEditProgress(pct, label) { document.getElementById("edit-progress-fill").style.width = pct + "%"; document.getElementById("edit-progress-label").textContent = label; }
+async function saveEdit() {
+  const btn = document.getElementById("save-edit-btn");
+  btn.disabled = true; btn.textContent = "Saving...";
+  document.getElementById("edit-progress-wrap").classList.add("active");
+  try {
+    const chNum = editChNum;
+    const newTitle = document.getElementById("edit-chapter-title").value.trim();
+    const keptPages = existingPages.filter(p => p.keep);
+    const allImagePaths = [];
+    for (let i = 0; i < newEditFiles.length; i++) {
+      const f = newEditFiles[i];
+      const ext = f.name.split(".").pop().toLowerCase();
+      const pageNum = keptPages.length + i + 1;
+      const paddedI = String(pageNum).padStart(2,"0");
+      const imgPath = `images/ch${chNum}_${paddedI}.${ext}`;
+      setEditProgress(Math.round((i / (newEditFiles.length || 1)) * 60), `Uploading new page ${i+1} of ${newEditFiles.length}...`);
+      const sha = await getSha(imgPath);
+      await apiPut(imgPath, toBase64(f.dataUrl), `Edit ch${chNum}: add page ${pageNum}`, sha);
+      allImagePaths.push(imgPath);
+    }
+    const finalPaths = [...keptPages.map(p => p.path), ...allImagePaths];
+    setEditProgress(75, "Rebuilding chapter page...");
+    const f = await apiGet(`comic/chapter${chNum}.html`);
+    let html = atob(f.content.replace(/\n/g,""));
+    html = html.replace(/<span class="chapter-title">.*?<\/span>/, `<span class="chapter-title">${newTitle}</span>`);
+    html = html.replace(/<title>.*?<\/title>/, `<title>${newTitle} — RENCLINKCREAKY</title>`);
+    html = html.replace(/End of .*?<\/div>/, `End of ${newTitle}</div>`);
+    const newImgTags = finalPaths.map((p, i) => `    <img src="../${p}" alt="${newTitle} Page ${i+1}">`).join("\n");
+    html = html.replace(/(<div class="pages"[^>]*>)([\s\S]*?)(<\/div>)/, `$1\n${newImgTags}\n$3`);
+    const newPageArray = finalPaths.map(p => `"../${p}"`).join(",\n    ");
+    html = html.replace(/const P=\[[^\]]*\]/, `const P=[${newPageArray}]`);
+    await apiPut(`comic/chapter${chNum}.html`, strToBase64(html), `Edit chapter ${chNum} pages`, f.sha);
+    setEditProgress(100, "Done!");
+    showToast("Chapter updated!", "success");
+    setTimeout(() => showMain(), 1500);
+  } catch(e) {
+    showToast("Error: " + e.message, "error");
+    console.error(e);
+  }
+  btn.disabled = false; btn.textContent = "Save Changes";
+}
+
+// 站点管理函数
+function addCharacter() { characters.push({ name: "新角色", image: "", desc: "角色简介" }); renderCharactersList(); }
+function removeCharacter(idx) { characters.splice(idx, 1); renderCharactersList(); }
+function renderCharactersList() {
+  const container = document.getElementById("characters-list");
+  container.innerHTML = "";
+  characters.forEach((c, i) => {
+    const div = document.createElement("div");
+    div.style.background = "var(--surface2)";
+    div.style.padding = "12px";
+    div.style.marginBottom = "12px";
+    div.style.borderRadius = "8px";
+    div.innerHTML = `
+      <input class="field-input" style="margin-bottom:8px;" placeholder="角色名" value="${escapeHtml(c.name)}" onchange="characters[${i}].name=this.value">
+      <div class="preview-container">
+        <img id="char-preview-${i}" class="image-preview" src="${c.image}" onerror="this.style.display='none'" style="${c.image ? '' : 'display:none'}">
+        <input class="field-input" style="flex:1;" placeholder="图片路径" value="${escapeHtml(c.image)}" onchange="characters[${i}].image=this.value; updateCharPreview(${i})">
+        <button class="ch-edit-btn" onclick="uploadCharacterImage(${i})">上传图片</button>
+        <button class="ch-edit-btn" onclick="clearCharacterImage(${i})" style="background:#a00;">删除图片</button>
+      </div>
+      <textarea class="field-input" rows="2" placeholder="角色简介" onchange="characters[${i}].desc=this.value">${escapeHtml(c.desc)}</textarea>
+      <button class="ch-edit-btn" style="background:#a00;" onclick="removeCharacter(${i})">删除角色</button>
+    `;
+    container.appendChild(div);
+  });
+}
+function updateCharPreview(idx) { const img = document.getElementById(`char-preview-${idx}`); if (img) { const url = characters[idx].image; if (url) { img.src = url; img.style.display = "inline-block"; } else img.style.display = "none"; } }
+async function uploadCharacterImage(idx) {
+  const input = document.createElement("input"); input.type = "file"; input.accept = "image/*";
+  input.onchange = async (e) => {
+    const file = e.target.files[0]; if (!file) return;
+    const ext = file.name.split('.').pop();
+    const filename = `char_${Date.now()}.${ext}`;
+    const path = `images/${filename}`;
+    const uploadedPath = await uploadImage(file, path);
+    characters[idx].image = uploadedPath;
+    renderCharactersList();
+    showToast("角色图片上传成功", "success");
+  };
+  input.click();
+}
+function clearCharacterImage(idx) { characters[idx].image = ""; renderCharactersList(); }
+
+function addGalleryItem() { galleryItems.push({ src: "", caption: "图片说明" }); renderGalleryList(); }
+function removeGalleryItem(idx) { galleryItems.splice(idx, 1); renderGalleryList(); }
+function renderGalleryList() {
+  const container = document.getElementById("gallery-list");
+  container.innerHTML = "";
+  galleryItems.forEach((item, i) => {
+    const div = document.createElement("div");
+    div.style.background = "var(--surface2)";
+    div.style.padding = "12px";
+    div.style.marginBottom = "12px";
+    div.style.borderRadius = "8px";
+    div.innerHTML = `
+      <div class="preview-container">
+        <img id="gallery-preview-${i}" class="image-preview" src="${item.src}" onerror="this.style.display='none'" style="${item.src ? '' : 'display:none'}">
+        <input class="field-input" style="flex:1;" placeholder="图片路径" value="${escapeHtml(item.src)}" onchange="galleryItems[${i}].src=this.value; updateGalleryPreview(${i})">
+        <button class="ch-edit-btn" onclick="uploadGalleryImage(${i})">上传图片</button>
+        <button class="ch-edit-btn" onclick="clearGalleryImage(${i})" style="background:#a00;">删除图片</button>
+      </div>
+      <input class="field-input" placeholder="图片说明" value="${escapeHtml(item.caption)}" onchange="galleryItems[${i}].caption=this.value">
+      <button class="ch-edit-btn" style="background:#a00;" onclick="removeGalleryItem(${i})">删除图片</button>
+    `;
+    container.appendChild(div);
+  });
+}
+function updateGalleryPreview(idx) { const img = document.getElementById(`gallery-preview-${idx}`); if (img) { const url = galleryItems[idx].src; if (url) { img.src = url; img.style.display = "inline-block"; } else img.style.display = "none"; } }
+async function uploadGalleryImage(idx) {
+  const input = document.createElement("input"); input.type = "file"; input.accept = "image/*";
+  input.onchange = async (e) => {
+    const file = e.target.files[0]; if (!file) return;
+    const ext = file.name.split('.').pop();
+    const filename = `gallery_${Date.now()}.${ext}`;
+    const path = `images/${filename}`;
+    const uploadedPath = await uploadImage(file, path);
+    galleryItems[idx].src = uploadedPath;
+    renderGalleryList();
+    showToast("画廊图片上传成功", "success");
+  };
+  input.click();
+}
+function clearGalleryImage(idx) { galleryItems[idx].src = ""; renderGalleryList(); }
+
+function escapeHtml(str) { return str.replace(/[&<>]/g, m => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;' }[m])); }
+
+async function loadSiteContent() {
+  try {
+    const indexRes = await apiGet("index.html");
+    let indexHtml = atob(indexRes.content.replace(/\n/g, ""));
+    let heroMatch = indexHtml.match(/<img src="([^"]+)" alt="Renclinkcreaky Hero Image">/);
+    if (heroMatch) document.getElementById("hero-image").value = heroMatch[1];
+    let latestLinkMatch = indexHtml.match(/<a id="latest-link" href="([^"]+)">/);
+    if (latestLinkMatch) document.getElementById("latest-link").value = latestLinkMatch[1];
+    let latestThumbMatch = indexHtml.match(/<img id="latest-thumb" src="([^"]+)" alt="Latest Comic">/);
+    if (latestThumbMatch) document.getElementById("latest-thumb").value = latestThumbMatch[1];
+    let latestTextMatch = indexHtml.match(/<span id="latest-text">(.*?)<\/span>/);
+    if (latestTextMatch) document.getElementById("latest-text").value = latestTextMatch[1];
+    
+    const heroImg = document.getElementById("hero-image").value;
+    const heroPreview = document.getElementById("hero-preview");
+    if (heroImg) { heroPreview.src = heroImg; heroPreview.style.display = "inline-block"; } else heroPreview.style.display = "none";
+    const thumbImg = document.getElementById("latest-thumb").value;
+    const thumbPreview = document.getElementById("thumb-preview");
+    if (thumbImg) { thumbPreview.src = thumbImg; thumbPreview.style.display = "inline-block"; } else thumbPreview.style.display = "none";
+    
+    try {
+      const charRes = await apiGet("characters/index.html");
+      let charHtml = atob(charRes.content.replace(/\n/g, ""));
+      const charRegex = /<div class="character-item">[\s\S]*?<img src="([^"]+)"[^>]*>[\s\S]*?<span>([^<]+)<\/span>[\s\S]*?<p[^>]*>([^<]*)<\/p>/g;
+      characters = [];
+      let match;
+      while ((match = charRegex.exec(charHtml)) !== null) characters.push({ image: match[1], name: match[2], desc: match[3] });
+    } catch(e) { characters = []; }
+    if (characters.length === 0) characters = [ { name: "Mitzi", image: "images/mitzi.png", desc: "主角，开朗活泼" }, { name: "Iris", image: "images/iris.png", desc: "神秘的支持者" }, { name: "Walt", image: "images/walt.png", desc: "亦敌亦友" } ];
+    renderCharactersList();
+    
+    try {
+      const galleryRes = await apiGet("gallery/index.html");
+      let galleryHtml = atob(galleryRes.content.replace(/\n/g, ""));
+      const galleryRegex = /<div class="character-item">[\s\S]*?<img src="([^"]+)"[^>]*>[\s\S]*?<span>([^<]+)<\/span>/g;
+      galleryItems = [];
+      let match;
+      while ((match = galleryRegex.exec(galleryHtml)) !== null) galleryItems.push({ src: match[1], caption: match[2] });
+    } catch(e) { galleryItems = []; }
+    if (galleryItems.length === 0) galleryItems = [ { src: "images/gallery1.jpg", caption: "封面插画" }, { src: "images/gallery2.jpg", caption: "角色草稿" } ];
+    renderGalleryList();
+  } catch(e) { showToast("读取站点内容失败: " + e.message, "error"); }
+}
+
+async function saveSiteContent() {
+  try {
+    const indexRes = await apiGet("index.html");
+    let indexHtml = atob(indexRes.content.replace(/\n/g, ""));
+    const heroImg = document.getElementById("hero-image").value.trim();
+    const latestLink = document.getElementById("latest-link").value.trim();
+    const latestThumb = document.getElementById("latest-thumb").value.trim();
+    const latestText = document.getElementById("latest-text").value.trim();
+    if (heroImg) indexHtml = indexHtml.replace(/<img src="[^"]+" alt="Renclinkcreaky Hero Image">/, `<img src="${heroImg}" alt="Renclinkcreaky Hero Image">`);
+    if (latestLink) indexHtml = indexHtml.replace(/<a id="latest-link" href="[^"]+">/, `<a id="latest-link" href="${latestLink}">`);
+    if (latestThumb) indexHtml = indexHtml.replace(/<img id="latest-thumb" src="[^"]+" alt="Latest Comic">/, `<img id="latest-thumb" src="${latestThumb}" alt="Latest Comic">`);
+    if (latestText) indexHtml = indexHtml.replace(/<span id="latest-text">.*?<\/span>/, `<span id="latest-text">${latestText}</span>`);
+    await apiPut("index.html", strToBase64(indexHtml), "Update homepage content", indexRes.sha);
+    
+    let charHtml = `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><title>Characters — RENCLINKCREAKY</title><link rel="stylesheet" href="/style.css"></head><body><div class="site-title"><a href="/index.html">RENCLINKCREAKY</a></div><div class="main-nav"><a href="/comic/chapter1.html">Comic</a><a href="/archive/index.html">Archive</a><a href="/gallery/index.html">Gallery</a><a href="/characters/index.html">Characters</a></div><div class="section-title" style="margin:40px 0 20px;">Characters</div><div class="characters-grid">${characters.map(c => `<div class="character-item"><img src="${c.image}" alt="${c.name}"><span>${c.name}</span><p style="font-size:12px; color:#aaa;">${c.desc}</p></div>`).join('')}</div><footer>© 2026 Renclinkcreaky. All rights reserved.</footer></body></html>`;
+    const charRes = await apiGet("characters/index.html").catch(() => null);
+    await apiPut("characters/index.html", strToBase64(charHtml), "Update characters", charRes?.sha);
+    
+    let galleryHtml = `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><title>Gallery — RENCLINKCREAKY</title><link rel="stylesheet" href="/style.css"></head><body><div class="site-title"><a href="/index.html">RENCLINKCREAKY</a></div><div class="main-nav"><a href="/comic/chapter1.html">Comic</a><a href="/archive/index.html">Archive</a><a href="/gallery/index.html">Gallery</a><a href="/characters/index.html">Characters</a></div><div class="section-title" style="margin:40px 0 20px;">Gallery</div><div class="characters-grid">${galleryItems.map(item => `<div class="character-item"><img src="${item.src}" alt="${item.caption}"><span>${item.caption}</span></div>`).join('')}</div><footer>© 2026 Renclinkcreaky. All rights reserved.</footer></body></html>`;
+    const galleryRes = await apiGet("gallery/index.html").catch(() => null);
+    await apiPut("gallery/index.html", strToBase64(galleryHtml), "Update gallery", galleryRes?.sha);
+    
+    showToast("站点内容已更新！", "success");
+  } catch(e) { showToast("保存失败: " + e.message, "error"); console.error(e); }
+}
+
+async function uploadHeroImage() {
+  const input = document.createElement("input"); input.type = "file"; input.accept = "image/*";
+  input.onchange = async (e) => {
+    const file = e.target.files[0]; if (!file) return;
+    const ext = file.name.split('.').pop();
+    const filename = `hero_${Date.now()}.${ext}`;
+    const path = `images/${filename}`;
+    const uploadedPath = await uploadImage(file, path);
+    document.getElementById("hero-image").value = uploadedPath;
+    const preview = document.getElementById("hero-preview");
+    preview.src = uploadedPath; preview.style.display = "inline-block";
+    showToast("英雄图片已上传", "success");
+  };
+  input.click();
+}
+function clearHeroImage() { document.getElementById("hero-image").value = ""; document.getElementById("hero-preview").style.display = "none"; }
+async function uploadThumbImage() {
+  const input = document.createElement("input"); input.type = "file"; input.accept = "image/*";
+  input.onchange = async (e) => {
+    const file = e.target.files[0]; if (!file) return;
+    const ext = file.name.split('.').pop();
+    const filename = `thumb_${Date.now()}.${ext}`;
+    const path = `images/${filename}`;
+    const uploadedPath = await uploadImage(file, path);
+    document.getElementById("latest-thumb").value = uploadedPath;
+    const preview = document.getElementById("thumb-preview");
+    preview.src = uploadedPath; preview.style.display = "inline-block";
+    showToast("缩略图已上传", "success");
+  };
+  input.click();
+}
+function clearThumbImage() { document.getElementById("latest-thumb").value = ""; document.getElementById("thumb-preview").style.display = "none"; }
+
+if (getToken()) { showMain(); document.getElementById("nav-status").textContent = "Connected"; }
+else showScreen("screen-setup");
+</script>
 </body>
 </html>
