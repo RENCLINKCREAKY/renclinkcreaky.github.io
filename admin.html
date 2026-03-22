@@ -141,7 +141,7 @@ nav { background:#000; border-bottom:2px solid var(--accent); height:52px; displ
 <!-- ===================== UPLOAD SCREEN ===================== -->
 <div class="screen" id="screen-upload">
   <div class="section-title">New Chapter</div>
-  <label class="field-label">Chapter title (e.g. "Chapter 3 — The Storm")</label>
+  <label class="field-label">Chapter title</label>
   <input class="field-input" id="chapter-title-input" placeholder="Chapter 3 — The Storm" type="text">
 
   <label class="field-label">Cover Image (optional, will be shown in archive)</label>
@@ -197,10 +197,11 @@ nav { background:#000; border-bottom:2px solid var(--accent); height:52px; displ
 const REPO = "RENCLINKCREAKY/renclinkcreaky.github.io";
 const API  = "https://api.github.com/repos/" + REPO + "/contents/";
 
+let chapters = [];          // 存储章节对象 { number, title, pages, cover, authorNote }
 let uploadedFiles = [];
-let chaptersData = { chapters: [] };
 let coverFile = null;
 let editCoverFile = null;
+let editChNum = null;
 
 function getToken() { return localStorage.getItem("rc_token") || ""; }
 function showToast(msg, type) { const t = document.getElementById("toast"); t.textContent = msg; t.className = "toast " + type + " show"; setTimeout(() => t.className = "toast", 3000); }
@@ -236,9 +237,8 @@ async function uploadImage(file, targetPath) {
 }
 function escapeHtml(str) { return str.replace(/[&<>]/g, m => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;' }[m])); }
 
-// ==================== 迁移旧章节到 chapters.json ====================
-async function migrateOldChapters() {
-  console.log("Checking for old chapters...");
+// ==================== 扫描并加载现有章节 ====================
+async function loadChaptersFromDisk() {
   try {
     const files = await apiGet("comic");
     const chapterFiles = files.filter(f => f.name.match(/^chapter\d+\.html$/)).sort((a,b) => {
@@ -246,15 +246,13 @@ async function migrateOldChapters() {
       const numB = parseInt(b.name.match(/\d+/)[0]);
       return numA - numB;
     });
-    if (chapterFiles.length === 0) return false;
-    
-    console.log(`Found ${chapterFiles.length} old chapter files, migrating...`);
-    let migrated = [];
+    chapters = [];
     for (const file of chapterFiles) {
       const content = atob(file.content.replace(/\n/g, ""));
+      const number = parseInt(file.name.match(/\d+/)[0]);
       // 提取标题
       let titleMatch = content.match(/<span class="chapter-title">(.*?)<\/span>/);
-      let title = titleMatch ? titleMatch[1] : `Chapter ${file.name.match(/\d+/)[0]}`;
+      let title = titleMatch ? titleMatch[1] : `Chapter ${number}`;
       if (!titleMatch) {
         titleMatch = content.match(/<title>(.*?)<\/title>/);
         if (titleMatch) title = titleMatch[1].replace(/ — RENCLINKCREAKY/, '');
@@ -262,52 +260,36 @@ async function migrateOldChapters() {
       // 提取图片路径
       const imgMatches = [...content.matchAll(/src="\.\.\/([^"]+\.(png|jpg|jpeg|webp))"/gi)];
       const pages = imgMatches.map(m => m[1]);
-      // 提取作者笔记（可选）
+      // 提取作者笔记
       let noteMatch = content.match(/<div class="author-note">(.*?)<\/div>/);
       let authorNote = noteMatch ? noteMatch[1].replace(/<[^>]*>/g, '') : "";
-      // 提取封面（如果有，从页面中找 cover 相关的图，简单起见先留空）
+      // 提取封面（如果有，从页面中找封面图，简单起见先留空，后续可以单独维护）
       let cover = null;
       const coverMatch = content.match(/<img[^>]*class="chapter-cover"[^>]*src="([^"]+)"/);
       if (coverMatch) cover = coverMatch[1];
-      
-      migrated.push({
-        number: parseInt(file.name.match(/\d+/)[0]),
-        title: title,
-        cover: cover,
-        pages: pages,
-        authorNote: authorNote
+      chapters.push({
+        number,
+        title,
+        pages,
+        cover,
+        authorNote,
+        contentSha: file.sha   // 保存文件sha，便于更新
       });
     }
-    // 按编号排序
-    migrated.sort((a,b) => a.number - b.number);
-    chaptersData.chapters = migrated;
-    await saveChaptersData();
-    console.log("Migration completed.");
     return true;
   } catch(e) {
-    console.warn("Migration failed:", e);
+    console.error("Failed to load chapters", e);
     return false;
   }
 }
 
-async function loadChaptersData() {
-  try {
-    const f = await apiGet("chapters.json");
-    chaptersData = JSON.parse(atob(f.content.replace(/\n/g, "")));
-  } catch(e) {
-    chaptersData = { chapters: [] };
-    // 尝试迁移旧章节
-    await migrateOldChapters();
-  }
-}
-async function saveChaptersData() {
-  const content = JSON.stringify(chaptersData, null, 2);
-  const sha = await getSha("chapters.json");
-  await apiPut("chapters.json", strToBase64(content), "Update chapters data", sha);
-}
-
-// ==================== 生成章节 HTML（新模板，保留所有功能） ====================
-function generateChapterHTML(title, chNum, imagePaths, prevLink, prevDisabled, prevLabel, nextLink, nextDisabled, nextLabel, authorNote = "", coverPath = "") {
+// ==================== 生成章节 HTML（带完整阅读器功能） ====================
+function generateChapterHTML(chapter, prevLink, prevDisabled, prevLabel, nextLink, nextDisabled, nextLabel) {
+  const title = chapter.title;
+  const chNum = chapter.number;
+  const imagePaths = chapter.pages;
+  const authorNote = chapter.authorNote || "";
+  const coverPath = chapter.cover || "";
   const imgTags = imagePaths.map((p, i) => `    <img src="../${p}" alt="${title} Page ${i+1}">`).join("\n");
   const pageArray = imagePaths.map(p => `"../${p}"`).join(",\n    ");
   const authorNoteHtml = authorNote ? `<div class="author-note">${escapeHtml(authorNote)}</div>` : "";
@@ -540,9 +522,7 @@ coverDropZone.addEventListener("drop", e => {
   e.preventDefault();
   coverDropZone.classList.remove("drag-over");
   const file = e.dataTransfer.files[0];
-  if (file && file.type.startsWith("image/")) {
-    handleCoverFile(file);
-  }
+  if (file && file.type.startsWith("image/")) handleCoverFile(file);
 });
 coverInput.addEventListener("change", e => {
   if (e.target.files.length) handleCoverFile(e.target.files[0]);
@@ -563,15 +543,16 @@ function clearCover() {
   coverPreviewImg.src = "";
 }
 
+// ==================== 加载并显示章节列表 ====================
 async function loadChapters() {
   const list = document.getElementById("chapters-list");
-  list.innerHTML = '<div class="no-chapters">Loading...</div>';
-  await loadChaptersData();
-  if (chaptersData.chapters.length === 0) {
+  list.innerHTML = '<div class="no-chapters">Loading chapters...</div>';
+  const ok = await loadChaptersFromDisk();
+  if (!ok || chapters.length === 0) {
     list.innerHTML = '<div class="no-chapters">No chapters yet — upload your first one!</div>';
     return;
   }
-  list.innerHTML = chaptersData.chapters.map((ch, idx) => {
+  list.innerHTML = chapters.map(ch => {
     return `<div class="ch-row" data-chapter="${ch.number}">
       <div class="ch-row-left">
         ${ch.cover ? `<img src="${ch.cover}" class="ch-cover-preview" onerror="this.style.display='none'">` : ''}
@@ -587,6 +568,7 @@ async function loadChapters() {
   }).join("");
 }
 
+// ==================== 生成档案页面（只保留 Archive 和首页） ====================
 async function generateArchivePage() {
   try {
     let archiveHtml = `<!DOCTYPE html>
@@ -642,12 +624,10 @@ async function generateArchivePage() {
 <div class="main-nav">
   <a href="../comic/chapter1.html">Comic</a>
   <a href="index.html">Archive</a>
-  <a href="../gallery/index.html">Gallery</a>
-  <a href="../characters/index.html">Characters</a>
 </div>
 <div class="archive-list">
 `;
-    for (const ch of chaptersData.chapters) {
+    for (const ch of chapters) {
       archiveHtml += `
   <div class="archive-item">
     ${ch.cover ? `<img class="archive-cover" src="${ch.cover}" alt="Cover of ${ch.title}">` : '<div class="archive-cover" style="background:#333;"></div>'}
@@ -669,6 +649,7 @@ async function generateArchivePage() {
   }
 }
 
+// ==================== 发布新章节 ====================
 async function publish() {
   const title = document.getElementById("chapter-title-input").value.trim();
   if (!title) { showToast("Please enter a chapter title", "error"); return; }
@@ -679,15 +660,16 @@ async function publish() {
   document.getElementById("progress-wrap").classList.add("active");
 
   try {
-    const chNum = chaptersData.chapters.length + 1;
-    const prevNum = chNum - 1;
-    const nextNum = chNum + 1;
-    const prevLink = chNum > 1 ? `https://renclinkcreaky.github.io/comic/chapter${prevNum}.html` : "#";
-    const prevDisabled = chNum === 1 ? "disabled" : "";
-    const prevLabel = chNum > 1 ? `Chapter ${prevNum}` : "No previous chapter";
-    const nextLink = "#";
-    const nextDisabled = "disabled";
-    const nextLabel = "Coming soon";
+    const chNum = chapters.length + 1;
+    // 获取前后章节编号
+    const prevChapter = chapters.find(c => c.number === chNum - 1);
+    const nextChapter = chapters.find(c => c.number === chNum + 1);
+    const prevLink = prevChapter ? `https://renclinkcreaky.github.io/comic/chapter${prevChapter.number}.html` : "#";
+    const prevDisabled = !prevChapter ? "disabled" : "";
+    const prevLabel = prevChapter ? `Chapter ${prevChapter.number}` : "No previous chapter";
+    const nextLink = nextChapter ? `https://renclinkcreaky.github.io/comic/chapter${nextChapter.number}.html` : "#";
+    const nextDisabled = !nextChapter ? "disabled" : "";
+    const nextLabel = nextChapter ? `Chapter ${nextChapter.number}` : "Coming soon";
 
     // 上传页面图片
     const imageNames = [];
@@ -717,25 +699,30 @@ async function publish() {
       await apiPut(coverPath, toBase64(coverDataUrl), `Add cover for chapter ${chNum}`, coverSha);
     }
 
-    // 生成章节 HTML
-    setProgress(80, "Generating chapter page...");
-    const chapterHTML = generateChapterHTML(title, chNum, imageNames, prevLink, prevDisabled, prevLabel, nextLink, nextDisabled, nextLabel, "", coverPath);
-    const chPath = `comic/chapter${chNum}.html`;
-    const sha = await getSha(chPath);
-    await apiPut(chPath, strToBase64(chapterHTML), `Publish ${title}`, sha);
-
-    // 更新 chapters.json
+    // 创建章节对象
     const newChapter = {
       number: chNum,
       title: title,
-      cover: coverPath || null,
       pages: imageNames,
-      authorNote: ""
+      cover: coverPath || null,
+      authorNote: "",
+      contentSha: null
     };
-    chaptersData.chapters.push(newChapter);
-    await saveChaptersData();
+    // 生成 HTML
+    const chapterHTML = generateChapterHTML(newChapter, prevLink, prevDisabled, prevLabel, nextLink, nextDisabled, nextLabel);
+    const chPath = `comic/chapter${chNum}.html`;
+    const sha = await getSha(chPath);
+    await apiPut(chPath, strToBase64(chapterHTML), `Publish ${title}`, sha);
+    newChapter.contentSha = sha;
 
-    // 生成 archive
+    // 更新本地 chapters 数组
+    chapters.push(newChapter);
+    chapters.sort((a,b) => a.number - b.number);
+
+    // 更新相邻章节的导航（因为新章节可能影响前后章节的 next/prev 链接）
+    await updateAllChapterNav();
+
+    // 生成档案页面
     await generateArchivePage();
 
     setProgress(100, "Done!");
@@ -749,13 +736,36 @@ async function publish() {
   clearCover();
 }
 
+// 更新所有章节的导航链接（当章节顺序变化时调用）
+async function updateAllChapterNav() {
+  // 对 chapters 按编号排序
+  chapters.sort((a,b) => a.number - b.number);
+  for (let i = 0; i < chapters.length; i++) {
+    const ch = chapters[i];
+    const prevCh = i > 0 ? chapters[i-1] : null;
+    const nextCh = i < chapters.length-1 ? chapters[i+1] : null;
+    const prevLink = prevCh ? `https://renclinkcreaky.github.io/comic/chapter${prevCh.number}.html` : "#";
+    const prevDisabled = !prevCh ? "disabled" : "";
+    const prevLabel = prevCh ? `Chapter ${prevCh.number}` : "No previous chapter";
+    const nextLink = nextCh ? `https://renclinkcreaky.github.io/comic/chapter${nextCh.number}.html` : "#";
+    const nextDisabled = !nextCh ? "disabled" : "";
+    const nextLabel = nextCh ? `Chapter ${nextCh.number}` : "Coming soon";
+    const newHtml = generateChapterHTML(ch, prevLink, prevDisabled, prevLabel, nextLink, nextDisabled, nextLabel);
+    const sha = await getSha(`comic/chapter${ch.number}.html`);
+    await apiPut(`comic/chapter${ch.number}.html`, strToBase64(newHtml), `Update navigation for chapter ${ch.number}`, sha);
+    ch.contentSha = sha;
+  }
+}
+
+// ==================== 删除章节 ====================
 async function deleteChapter(chNum) {
   if (!confirm(`⚠️ 确定要永久删除 Chapter ${chNum} 及其所有图片吗？此操作不可撤销。`)) return;
   const btn = document.querySelector(`button[onclick="deleteChapter(${chNum})"]`);
   if (btn) btn.disabled = true;
   try {
-    const chapter = chaptersData.chapters.find(c => c.number === chNum);
+    const chapter = chapters.find(c => c.number === chNum);
     if (chapter) {
+      // 删除封面
       if (chapter.cover) {
         const coverSha = await getSha(chapter.cover);
         if (coverSha) {
@@ -766,6 +776,7 @@ async function deleteChapter(chNum) {
           });
         }
       }
+      // 删除页面图片
       for (let imgPath of chapter.pages) {
         const imgSha = await getSha(imgPath);
         if (imgSha) {
@@ -776,6 +787,7 @@ async function deleteChapter(chNum) {
           });
         }
       }
+      // 删除章节 HTML
       const htmlSha = await getSha(`comic/chapter${chNum}.html`);
       if (htmlSha) {
         await fetch(API + `comic/chapter${chNum}.html`, {
@@ -784,8 +796,11 @@ async function deleteChapter(chNum) {
           body: JSON.stringify({ message: `Delete chapter ${chNum}`, sha: htmlSha })
         });
       }
-      chaptersData.chapters = chaptersData.chapters.filter(c => c.number !== chNum);
-      await saveChaptersData();
+      // 从数组中移除
+      chapters = chapters.filter(c => c.number !== chNum);
+      // 更新剩余章节的导航
+      await updateAllChapterNav();
+      // 重新生成档案页面
       await generateArchivePage();
       showToast(`Chapter ${chNum} 已删除`, "success");
       loadChapters();
@@ -804,7 +819,6 @@ async function deleteChapter(chNum) {
 let dragSrcIndex = null;
 let existingPages = [];
 let newEditFiles = [];
-let editChNum = null;
 
 function handleDragStart(e, idx) { dragSrcIndex = idx; e.dataTransfer.effectAllowed = 'move'; e.dataTransfer.setData('text/plain', idx); }
 function handleDragOver(e) { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; }
@@ -833,7 +847,7 @@ async function showEdit(chNum) {
   document.getElementById("edit-title-label").textContent = "Edit Chapter " + chNum;
   showScreen("screen-edit");
 
-  const chapter = chaptersData.chapters.find(c => c.number === chNum);
+  const chapter = chapters.find(c => c.number === chNum);
   if (!chapter) {
     showToast("Chapter not found", "error");
     showMain();
@@ -916,6 +930,8 @@ async function saveEdit() {
     const authorNote = document.getElementById("edit-author-note").value.trim();
     const keptPages = existingPages.filter(p => p.keep);
     const allImagePaths = [];
+
+    // 上传新添加的页面图片
     for (let i = 0; i < newEditFiles.length; i++) {
       const f = newEditFiles[i];
       const ext = f.name.split(".").pop().toLowerCase();
@@ -932,35 +948,24 @@ async function saveEdit() {
     if (editCoverFile) {
       finalCover = editCoverFile;
     } else {
-      const originalChapter = chaptersData.chapters.find(c => c.number === chNum);
+      const originalChapter = chapters.find(c => c.number === chNum);
       if (originalChapter && originalChapter.cover && !editCoverFile) {
         finalCover = originalChapter.cover;
       }
     }
-    const chapterIndex = chaptersData.chapters.findIndex(c => c.number === chNum);
+    // 更新章节对象
+    const chapterIndex = chapters.findIndex(c => c.number === chNum);
     if (chapterIndex === -1) throw new Error("Chapter not found");
-    chaptersData.chapters[chapterIndex] = {
+    chapters[chapterIndex] = {
       number: chNum,
       title: newTitle,
-      cover: finalCover,
       pages: finalPaths,
-      authorNote: authorNote
+      cover: finalCover,
+      authorNote: authorNote,
+      contentSha: chapters[chapterIndex].contentSha
     };
-    await saveChaptersData();
-    const allNumbers = chaptersData.chapters.map(c => c.number).sort((a,b)=>a-b);
-    const idx = allNumbers.indexOf(chNum);
-    const prevNum = idx > 0 ? allNumbers[idx-1] : null;
-    const nextNum = idx < allNumbers.length-1 ? allNumbers[idx+1] : null;
-    const prevLink = prevNum ? `https://renclinkcreaky.github.io/comic/chapter${prevNum}.html` : "#";
-    const prevDisabled = !prevNum ? "disabled" : "";
-    const prevLabel = prevNum ? `Chapter ${prevNum}` : "No previous chapter";
-    const nextLink = nextNum ? `https://renclinkcreaky.github.io/comic/chapter${nextNum}.html` : "#";
-    const nextDisabled = !nextNum ? "disabled" : "";
-    const nextLabel = nextNum ? `Chapter ${nextNum}` : "Coming soon";
-    const chapterHTML = generateChapterHTML(newTitle, chNum, finalPaths, prevLink, prevDisabled, prevLabel, nextLink, nextDisabled, nextLabel, authorNote, finalCover);
-    const chPath = `comic/chapter${chNum}.html`;
-    const sha = await getSha(chPath);
-    await apiPut(chPath, strToBase64(chapterHTML), `Edit chapter ${chNum}`, sha);
+    // 更新所有章节导航（因为标题变了，但导航主要依赖编号，不过为了保险还是重新生成）
+    await updateAllChapterNav();
     await generateArchivePage();
     setEditProgress(100, "Done!");
     showToast("Chapter updated!", "success");
@@ -995,6 +1000,7 @@ function renderPreviews() {
 }
 function removePage(i) { uploadedFiles.splice(i,1); renderPreviews(); }
 
+// ==================== 屏幕路由与 Token 管理 ====================
 function saveToken() {
   const t = document.getElementById("token-input").value.trim();
   if (!t.startsWith("ghp_") && !t.startsWith("github_pat_")) { showToast("That doesn't look like a valid token", "error"); return; }
