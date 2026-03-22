@@ -1,0 +1,13 @@
+{
+  "chapters": [
+    {
+      "number": 1,
+      "title": "dgd",
+      "cover": "images/cover_ch1.png",
+      "pages": [
+        "images/ch1_01.jpg"
+      ],
+      "authorNote": ""
+    }
+  ]
+}
